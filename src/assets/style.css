@@ -1,0 +1,32 @@
+body {
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+.panel.grocery-list {
+    background-color: #eee;
+}
+
+/*** Menu view ***/
+.dish.description {
+    width: 150px;
+    padding: 5px; 
+}
+
+.dish.description .time {
+    color: gray;
+    font-size: x-small;
+}
+
+/*** Grocery view ***/
+.category .category-name {
+    padding: 5px;
+    font-weight: bold;
+    border-bottom: 3px solid #ea6753;
+    box-shadow: inset 0 -4px 0 #ea6753;
+}
+.category .grocery {
+    margin-left: 10px;
+}
+
+.category .grocery .quantity span:not(:last-child):after { 
+    content: ' + '; 
+} 

@@ -1,0 +1,35 @@
+{
+    "name": "todays-menu-web",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@material-ui/core": "^4.11.0",
+        "@material-ui/icons": "^4.9.1",
+        "@material-ui/lab": "^4.0.0-alpha.56",
+        "moment": "^2.28.0",
+        "normalize.css": "^8.0.1",
+        "pako": "^1.0.11",
+        "preact": "^10.4.8",
+        "preact-render-to-string": "^5.1.10",
+        "preact-router": "^3.2.1"
+    },
+    "eslintConfig": {
+        "extends": "preact"
+    },
+    "eslintIgnore": [
+        "build/*"
+    ],
+    "devDependencies": {
+        "@now/node": "^1.8.2",
+        "eslint": "^7.9.0",
+        "eslint-config-preact": "^1.1.1",
+        "preact-cli": "^3.0.2",
+        "sirv-cli": "^1.0.6"
+    },
+    "scripts": {
+        "build": "preact build --no-prerender --no-sw",
+        "serve": "sirv build --port 8080 --cors --single",
+        "dev": "preact watch",
+        "lint": "eslint src"
+    }
+}
