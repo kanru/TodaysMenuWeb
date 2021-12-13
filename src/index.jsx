@@ -1,29 +1,23 @@
 /* eslint-disable no-prototype-builtins */
-// import 'normalize.css';
-import { styled } from '@mui/material/styles';
-import moment from 'moment';
-import { render, Component } from 'preact';
-import Router from 'preact-router';
-import pako from 'pako';
-
-import { ThemeProvider, StyledEngineProvider, createTheme } from '@mui/material/styles';
-
-import Grid from '@mui/material/Grid';
-import { blue, grey } from '@mui/material/colors';
-
-import MyAppBar from './appbar-view.jsx';
-import DayMenu from './menu-view.jsx';
-import GroceryView from './grocery-view.jsx';
-import { LunchPlanner, DinnerPlanner } from './planner.js';
-import FileManager from './file-manager.js';
-import DishList from './dish-pool.js';
-import MenuUtil from './menu-util.js';
-import { IngredientCategory, GroceryManager } from './grocery-manager.js';
-import ShareDialog from './share-dialog.jsx';
-import Redirect from './redirect.js';
-import FormDialog from './manual-input.jsx';
 import { CssBaseline } from '@mui/material';
-
+import { blue, grey } from '@mui/material/colors';
+import Grid from '@mui/material/Grid';
+import { createTheme, styled, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
+import moment from 'moment';
+import pako from 'pako';
+import { Component, render } from 'preact';
+import Router from 'preact-router';
+import MyAppBar from './appbar-view.jsx';
+import DishList from './dish-pool.js';
+import FileManager from './file-manager.js';
+import { GroceryManager, IngredientCategory } from './grocery-manager.js';
+import GroceryView from './grocery-view.jsx';
+import FormDialog from './manual-input.jsx';
+import MenuUtil from './menu-util.js';
+import DayMenu from './menu-view.jsx';
+import { DinnerPlanner, LunchPlanner } from './planner.js';
+import Redirect from './redirect.js';
+import ShareDialog from './share-dialog.jsx';
 
 const startDate = moment().day(7); // coming sunday
 const DAYS = 7;
