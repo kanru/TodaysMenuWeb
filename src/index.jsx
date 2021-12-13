@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 import 'normalize.css';
 import moment from 'moment';
-import { Component } from 'preact';
+import { render, Component } from 'preact';
 import Router from 'preact-router';
 import pako from 'pako';
 
@@ -9,17 +9,17 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Grid from '@material-ui/core/Grid';
 
-import MyAppBar from './appbar-view.js';
-import DayMenu from './menu-view.js';
-import GroceryView from './grocery-view.js';
+import MyAppBar from './appbar-view.jsx';
+import DayMenu from './menu-view.jsx';
+import GroceryView from './grocery-view.jsx';
 import { LunchPlanner, DinnerPlanner } from './planner.js';
 import FileManager from './file-manager.js';
 import DishList from './dish-pool.js';
 import MenuUtil from './menu-util.js';
 import { IngredientCategory, GroceryManager } from './grocery-manager.js';
-import ShareDialog from './share-dialog.js';
+import ShareDialog from './share-dialog.jsx';
 import Redirect from './redirect.js';
-import FormDialog from './manual-input.js';
+import FormDialog from './manual-input.jsx';
 
 
 const startDate = moment().day(7); // coming sunday
@@ -227,10 +227,12 @@ class App extends Component {
 }
 
 // eslint-disable-next-line react/display-name
-export default () => (
+const Main = () => (
     <Router>
         <App path="/" />
         <App path="/menu/:payload" />
         <Redirect path="/b/:link" />
     </Router>
 );
+
+render(<Main />, document.body);
