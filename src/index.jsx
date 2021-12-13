@@ -5,7 +5,7 @@ import { render, Component } from 'preact';
 import Router from 'preact-router';
 import pako from 'pako';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, ThemeProvider, createTheme } from '@material-ui/core/styles';
 
 import Grid from '@material-ui/core/Grid';
 
@@ -24,6 +24,8 @@ import FormDialog from './manual-input.jsx';
 
 const startDate = moment().day(7); // coming sunday
 const DAYS = 7;
+
+const theme = createTheme();
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -198,31 +200,33 @@ class App extends Component {
     }
 
     render({ }, { menu = [], groceries = {}, share, url }) {
-        const classes = useStyles();
-        return <div className={classes.root}>
-            <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
-                onClickLoadHistory={this.loadHistory} onClickShareMenu={this.shareMenu} />
-            <FormDialog open={this.state.showForm}
-                defaultValue={this.state.formDishNames}
-                options={this.allDishes.dishes.map(dish => dish.name)}
-                onCancel={this.onManualInputCancel}
-                onClose={this.onManualInputConfirm}
-                onChange={this.onManualInputUpdate} />
-            <div style={{ padding: 5 }}>
-                <Grid container spacing={3} alignItems="flex-start" justify="center">
-                    <Grid container item xs={12} md={6} lg={5}>
-                        {menu.map(item => <DayMenu item={item} />)}
+        // const classes = useStyles();
+        return <ThemeProvider theme={theme}>
+            <div>
+                <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
+                    onClickLoadHistory={this.loadHistory} onClickShareMenu={this.shareMenu} />
+                <FormDialog open={this.state.showForm}
+                    defaultValue={this.state.formDishNames}
+                    options={this.allDishes.dishes.map(dish => dish.name)}
+                    onCancel={this.onManualInputCancel}
+                    onClose={this.onManualInputConfirm}
+                    onChange={this.onManualInputUpdate} />
+                <div style={{ padding: 5 }}>
+                    <Grid container spacing={3} alignItems="flex-start" justify="center">
+                        <Grid container item xs={12} md={6} lg={5}>
+                            {menu.map(item => <DayMenu item={item} />)}
+                        </Grid>
+                        <Grid item xs={12} md={6} lg={5}>
+                            {IngredientCategory
+                                .filter(category => groceries[category])
+                                .map(category =>
+                                    <GroceryView category={category} items={groceries[category]} />)}
+                        </Grid>
                     </Grid>
-                    <Grid item xs={12} md={6} lg={5}>
-                        {IngredientCategory
-                            .filter(category => groceries[category])
-                            .map(category =>
-                                <GroceryView category={category} items={groceries[category]} />)}
-                    </Grid>
-                </Grid>
+                </div>
+                <ShareDialog open={share} url={url} onClose={this.closeShare} />
             </div>
-            <ShareDialog open={share} url={url} onClose={this.closeShare} />
-        </div>;
+        </ThemeProvider>;
     }
 }
 
