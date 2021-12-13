@@ -1,8 +1,8 @@
-import FileCopy from '@material-ui/icons/FileCopy'
-import Dialog from '@material-ui/core/Dialog'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import DialogContent from '@material-ui/core/DialogContent'
-import IconButton from '@material-ui/core/IconButton'
+import FileCopy from '@mui/icons-material/FileCopy'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import IconButton from '@mui/material/IconButton'
 
 const ShareDialog = ({ open, url, onClose }) => {
     const handleClick = () => {
@@ -13,7 +13,7 @@ const ShareDialog = ({ open, url, onClose }) => {
             <DialogTitle>複製分享連結</DialogTitle>
             <DialogContent>
                 {url}
-                <IconButton onClick={handleClick}>
+                <IconButton onClick={handleClick} size="large">
                     <FileCopy />
                 </IconButton>
             </DialogContent>

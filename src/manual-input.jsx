@@ -1,25 +1,31 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
-const useStyles = makeStyles(() => ({
-    content: {
+const PREFIX = 'manual-input';
+
+const classes = {
+    content: `${PREFIX}-content`
+};
+
+const StyledDialog = styled(Dialog)(() => ({
+    [`& .${classes.content}`]: {
         width: '350px',
-    },
+    }
 }));
 
 export default function FormDialog(props) {
-    const classes = useStyles();
+
 
     return (
-        <Dialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
+        <StyledDialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">手動輸入</DialogTitle>
             <DialogContent className={classes.content}>
                 <DialogContentText>
@@ -51,6 +57,6 @@ export default function FormDialog(props) {
                     確定
                 </Button>
             </DialogActions>
-        </Dialog>
+        </StyledDialog>
     );
 }
