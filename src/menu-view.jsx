@@ -1,58 +1,72 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 
-import AutorenewIcon from '@material-ui/icons/Autorenew';
-import Card from '@material-ui/core/Card';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardMedia from '@material-ui/core/CardMedia';
-import Chip from '@material-ui/core/Chip';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardMedia from '@mui/material/CardMedia';
+import Chip from '@mui/material/Chip';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 
-const useStyles = makeStyles((theme) => ({
-    card: {
+const PREFIX = 'menu-view';
+
+const classes = {
+    card: `${PREFIX}-card`,
+    media: `${PREFIX}-media`
+};
+
+const StyledGrid = styled(Grid)((
+    {
+        theme
+    }
+) => ({
+    [`& .${classes.card}`]: {
         maxWidth: 110,
         [theme.breakpoints.up('md')]: {
             maxWidth: 150,
         },
         minWidth: 50,
     },
-    media: {
+
+    [`& .${classes.media}`]: {
         height: 80,
         [theme.breakpoints.up('md')]: {
             height: 150,
         },
-    },
+    }
 }));
 
 const PHOTO_BASE = '/assets/photo/';
 
 export default function DayMenu(props) {
     let item = props.item;
-    return <Grid item container key={item.id}>
-        <Grid item>
-            <Typography variant="h6" component="h3">{item.date}</Typography>
-        </Grid>
-        <Grid item container spacing={2}>
+    return (
+        <StyledGrid item container key={item.id}>
             <Grid item>
-                <DishView dishes={item.lunch} onClick={item.overrideLunch} />
+                <Typography variant="h2">{item.date}</Typography>
+            </Grid>
+            <Grid item container spacing={2}>
                 <Grid item>
-                    <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextLunch} />
+                    <DishView dishes={item.lunch} onClick={item.overrideLunch} />
+                    <Grid item>
+                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextLunch} />
+                    </Grid>
+                </Grid>
+                <Divider orientation="vertical" flexItem />
+                <Grid item>
+                    <DishView dishes={item.dinner} onClick={item.overrideDinner} />
+                    <Grid item>
+                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextDinner} />
+                    </Grid>
                 </Grid>
             </Grid>
-            <Divider orientation="vertical" flexItem />
-            <Grid item>
-                <DishView dishes={item.dinner} onClick={item.overrideDinner} />
-                <Grid item>
-                    <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextDinner} />
-                </Grid>
-            </Grid>
-        </Grid>
-    </Grid>;
+        </StyledGrid>
+    );
 }
 
 function DishView(props) {
-    const classes = useStyles();
+
 
     let dishes = props.dishes;
     dishes.map(dish => dish.photo = dish.photo || `${PHOTO_BASE}${dish.name}.jpg`);

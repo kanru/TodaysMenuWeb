@@ -1,13 +1,15 @@
 /* eslint-disable no-prototype-builtins */
-import 'normalize.css';
+// import 'normalize.css';
+import { styled } from '@mui/material/styles';
 import moment from 'moment';
 import { render, Component } from 'preact';
 import Router from 'preact-router';
 import pako from 'pako';
 
-import { makeStyles, ThemeProvider, createTheme } from '@material-ui/core/styles';
+import { ThemeProvider, StyledEngineProvider, createTheme } from '@mui/material/styles';
 
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
+import { blue, grey } from '@mui/material/colors';
 
 import MyAppBar from './appbar-view.jsx';
 import DayMenu from './menu-view.jsx';
@@ -20,18 +22,35 @@ import { IngredientCategory, GroceryManager } from './grocery-manager.js';
 import ShareDialog from './share-dialog.jsx';
 import Redirect from './redirect.js';
 import FormDialog from './manual-input.jsx';
+import { CssBaseline } from '@mui/material';
 
 
 const startDate = moment().day(7); // coming sunday
 const DAYS = 7;
 
-const theme = createTheme();
-
-const useStyles = makeStyles(() => ({
-    root: {
-        flexGrow: 1,
+const theme = createTheme({
+    palette: {
+        secondary: blue,
+        appbar: {
+            main: grey[300],
+            contrastText: 'black'
+        }
     },
-}));
+    typography: {
+        h1: {
+            color: 'white',
+            fontSize: '1.25rem',
+            fontWeight: 500,
+            letterSpacing: "0.0075em"
+        },
+        h2: {
+            color: 'black',
+            fontSize: '1.25rem',
+            fontWeight: 500,
+            letterSpacing: "0.0075em"
+        },
+    }
+});
 
 class App extends Component {
 
@@ -200,33 +219,38 @@ class App extends Component {
     }
 
     render({ }, { menu = [], groceries = {}, share, url }) {
-        // const classes = useStyles();
-        return <ThemeProvider theme={theme}>
-            <div>
-                <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
-                    onClickLoadHistory={this.loadHistory} onClickShareMenu={this.shareMenu} />
-                <FormDialog open={this.state.showForm}
-                    defaultValue={this.state.formDishNames}
-                    options={this.allDishes.dishes.map(dish => dish.name)}
-                    onCancel={this.onManualInputCancel}
-                    onClose={this.onManualInputConfirm}
-                    onChange={this.onManualInputUpdate} />
-                <div style={{ padding: 5 }}>
-                    <Grid container spacing={3} alignItems="flex-start" justify="center">
-                        <Grid container item xs={12} md={6} lg={5}>
-                            {menu.map(item => <DayMenu item={item} />)}
-                        </Grid>
-                        <Grid item xs={12} md={6} lg={5}>
-                            {IngredientCategory
-                                .filter(category => groceries[category])
-                                .map(category =>
-                                    <GroceryView category={category} items={groceries[category]} />)}
-                        </Grid>
-                    </Grid>
-                </div>
-                <ShareDialog open={share} url={url} onClose={this.closeShare} />
-            </div>
-        </ThemeProvider>;
+
+        return (
+            <StyledEngineProvider injectFirst>
+                <CssBaseline />
+                <ThemeProvider theme={theme}>
+                    <div>
+                        <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
+                            onClickLoadHistory={this.loadHistory} onClickShareMenu={this.shareMenu} />
+                        <FormDialog open={this.state.showForm}
+                            defaultValue={this.state.formDishNames}
+                            options={this.allDishes.dishes.map(dish => dish.name)}
+                            onCancel={this.onManualInputCancel}
+                            onClose={this.onManualInputConfirm}
+                            onChange={this.onManualInputUpdate} />
+                        <div style={{ padding: 5 }}>
+                            <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
+                                <Grid container item xs={12} md={6} lg={5}>
+                                    {menu.map(item => <DayMenu item={item} />)}
+                                </Grid>
+                                <Grid item xs={12} md={6} lg={5}>
+                                    {IngredientCategory
+                                        .filter(category => groceries[category])
+                                        .map(category =>
+                                            <GroceryView category={category} items={groceries[category]} />)}
+                                </Grid>
+                            </Grid>
+                        </div>
+                        <ShareDialog open={share} url={url} onClose={this.closeShare} />
+                    </div>
+                </ThemeProvider>
+            </StyledEngineProvider>
+        );
     }
 }
 
@@ -239,4 +263,16 @@ const Main = () => (
     </Router>
 );
 
-render(<Main />, document.body);
+const PREFIX = 'index';
+
+const classes = {
+    root: `${PREFIX}-root`
+};
+
+const StyledMain = styled(Main)(() => ({
+    [`& .${classes.root}`]: {
+        flexGrow: 1,
+    }
+}));
+
+render(<StyledMain />, document.body);
