@@ -18,6 +18,19 @@ import DayMenu from './menu-view.jsx';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
 import Redirect from './redirect.js';
 import ShareDialog from './share-dialog.jsx';
+import {
+    ApolloClient,
+    InMemoryCache,
+    ApolloProvider,
+    useQuery,
+    gql
+} from "@apollo/client";
+import GetDishes from './query.graphql';
+
+const client = new ApolloClient({
+    uri: 'http://localhost:8080/graphql',
+    cache: new InMemoryCache()
+});
 
 const startDate = moment().day(7); // coming sunday
 const DAYS = 7;
@@ -62,9 +75,8 @@ class App extends Component {
         if (typeof window !== "undefined") {
             Promise.all(
                 [
-                    fetch('/assets/dishes.json')
-                        .then(response => response.json())
-                        .then(data => this.initMeal(data)),
+                    client.query({ query: GetDishes })
+                        .then(result => this.initMeal(result.data.dishes)),
                     fetch('/assets/ingredient-category.json')
                         .then(response => response.json())
                         .then(data => this.initGrocery(data))
@@ -250,11 +262,13 @@ class App extends Component {
 
 // eslint-disable-next-line react/display-name
 const Main = () => (
-    <Router>
-        <App path="/" />
-        <App path="/menu/:payload" />
-        <Redirect path="/b/:link" />
-    </Router>
+    <ApolloProvider client={client}>
+        <Router>
+            <App path="/" />
+            <App path="/menu/:payload" />
+            <Redirect path="/b/:link" />
+        </Router>
+    </ApolloProvider>
 );
 
 const PREFIX = 'index';

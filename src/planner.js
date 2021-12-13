@@ -41,10 +41,11 @@ export class DinnerPlanner {
     selected = [];
 
     constructor(inputDishes) {
-        let dishes = inputDishes.filter(dish => !this.isSuppressed(dish));
-        this.soloPool = new DishPool(dishes.filter(dish => this.isSolo(dish)));
-        this.meatPool = new DishPool(dishes.filter(dish => this.isMeat(dish)));
-        this.vegePool = new DishPool(dishes.filter(dish => this.isVege(dish)));
+        // let dishes = inputDishes.filter(dish => !this.isSuppressed(dish));
+        // this.soloPool = new DishPool(dishes.filter(dish => this.isSolo(dish)));
+        // this.meatPool = new DishPool(dishes.filter(dish => this.isMeat(dish)));
+        // this.vegePool = new DishPool(dishes.filter(dish => this.isVege(dish)));
+        this.soloPool = new DishPool(inputDishes);
     }
 
     isSuppressed(dish) {
@@ -60,13 +61,13 @@ export class DinnerPlanner {
     }
 
     isMeat(dish) {
-        return !this.isSolo(dish) && !this.isSoup(dish) && 
-                (dish.meat >= 0.5 || dish.seafood >= 0.5);
+        return !this.isSolo(dish) && !this.isSoup(dish) &&
+            (dish.meat >= 0.5 || dish.seafood >= 0.5);
     }
 
     isVege(dish) {
-        return !this.isSolo(dish) && !this.isSoup(dish) && 
-                (dish.meat < 0.5 && dish.seafood < 0.5);
+        return !this.isSolo(dish) && !this.isSoup(dish) &&
+            (dish.meat < 0.5 && dish.seafood < 0.5);
     }
 
     randomInit() {
@@ -79,16 +80,16 @@ export class DinnerPlanner {
     }
 
     getOne() {
-        if (Math.floor(Math.random() * 100) % 2) {
-            return [this.soloPool.next()];
-        }
-        let first = this.meatPool.next();
-        let second = this.vegePool.next();
-        if (first == second) {
-            second = this.vegePool.next();
-        }
-        return [first, second];
-
+        // if (Math.floor(Math.random() * 100) % 2) {
+        //     return [this.soloPool.next()];
+        // }
+        // let first = this.meatPool.next();
+        // let second = this.vegePool.next();
+        // if (first == second) {
+        //     second = this.vegePool.next();
+        // }
+        // return [first, second];
+        return [this.soloPool.next()];
     }
 
     pickNext(index) {

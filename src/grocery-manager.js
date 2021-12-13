@@ -17,7 +17,7 @@ export class GroceryManager {
     aggregate(dishes) {
         let groceries = {};
         dishes.map((dish) => {
-            dish.ingredient.map(ingred => {
+            dish.ingredients.map(ingred => {
                 if (ingred.description === undefined) {
                     return;
                 }
