@@ -1,5 +1,4 @@
-import { styled } from '@mui/material/styles';
-
+/* eslint-disable react/jsx-key */
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
@@ -7,7 +6,9 @@ import CardMedia from '@mui/material/CardMedia';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+
 
 const PREFIX = 'menu-view';
 

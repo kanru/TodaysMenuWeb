@@ -1,0 +1,25 @@
+query GetDishes {
+    dishes {
+        id
+        name
+        ingredients {
+            ingredient {
+                name
+                category
+            }
+            quantity
+        }
+        photo {
+            filename
+            mimetype
+        }
+        meal
+        spicy
+        cook_time
+        recipe_link
+        serving
+        one_dish
+        soup
+        style
+    }
+}

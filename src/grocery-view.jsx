@@ -1,8 +1,10 @@
+/* eslint-disable react/jsx-key */
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+
 
 export default function GroceryView(props) {
     let category = props.category;

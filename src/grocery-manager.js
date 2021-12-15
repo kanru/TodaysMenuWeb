@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 
 export const IngredientCategory = ["未知", "蔬菜", "肉", "海鮮", "其他", "主食", "調味料"];
 
