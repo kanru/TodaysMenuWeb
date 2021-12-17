@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { CssBaseline } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
 import Grid from '@mui/material/Grid';
@@ -11,15 +12,20 @@ import Router from 'preact-router';
 import MyAppBar from './appbar-view.jsx';
 import DishList from './dish-pool.js';
 import FileManager from './file-manager.js';
-import { GroceryManager, IngredientCategory } from './grocery-manager.js';
+import GroceryManager from './grocery-manager.js';
 import GroceryView from './grocery-view.jsx';
 import FormDialog from './manual-input.jsx';
 import MenuUtil from './menu-util.js';
 import DayMenu from './menu-view.jsx';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
+import { GetDishes, GetIngredients } from './query.graphql';
 import Redirect from './redirect.js';
 import ShareDialog from './share-dialog.jsx';
 
+const client = new ApolloClient({
+    uri: 'http://localhost:8080/graphql',
+    cache: new InMemoryCache()
+});
 
 const startDate = moment().day(7); // coming sunday
 const DAYS = 7;
@@ -64,12 +70,10 @@ class App extends Component {
         if (typeof window !== "undefined") {
             Promise.all(
                 [
-                    fetch('/assets/dishes.json')
-                        .then(response => response.json())
-                        .then(data => this.initMeal(data)),
-                    fetch('/assets/ingredient-category.json')
-                        .then(response => response.json())
-                        .then(data => this.initGrocery(data))
+                    client.query({ query: GetDishes })
+                        .then(result => this.initMeal(result.data.dishes)),
+                    client.query( { query: GetIngredients })
+                        .then(result => this.initGrocery(result.data.ingredients))
                 ])
                 .then(() => {
                     if (payload) {
@@ -97,13 +101,16 @@ class App extends Component {
 
     initMeal(data) {
         this.allDishes = new DishList(data);
-        this.lunchPlanner = new LunchPlanner(data.filter(dish => dish.meal == "lunch"));
-        this.dinnerPlanner = new DinnerPlanner(data.filter(dish => dish.meal == "dinner"));
+        this.lunchPlanner = new LunchPlanner(data.filter(dish => (!dish.meal || dish.meal == "lunch")), DAYS);
+        this.dinnerPlanner = new DinnerPlanner(data.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
         this.generateMenu();
     }
 
     initGrocery(categories) {
-        this.groceryManager = new GroceryManager(categories);
+        // FIXME: ingredientCategory should be directly from API.
+        this.groceryCategoryList = categories.reduce((retList, ingredient) => 
+                    retList.concat(ingredient.category), []);
+        this.groceryManager = new GroceryManager();
     }
 
     wrapMenu(menu) {
@@ -235,7 +242,7 @@ class App extends Component {
                                     {menu.map(item => <DayMenu item={item} />)}
                                 </Grid>
                                 <Grid item xs={12} md={6} lg={5}>
-                                    {IngredientCategory
+                                    {this.groceryCategoryList && this.groceryCategoryList
                                         .filter(category => groceries[category])
                                         .map(category =>
                                             <GroceryView category={category} items={groceries[category]} />)}
@@ -250,13 +257,14 @@ class App extends Component {
     }
 }
 
-// eslint-disable-next-line react/display-name
 const Main = () => (
-    <Router>
-        <App path="/" />
-        <App path="/menu/:payload" />
-        <Redirect path="/b/:link" />
-    </Router>
+    <ApolloProvider client={client}>
+        <Router>
+            <App path="/" />
+            <App path="/menu/:payload" />
+            <Redirect path="/b/:link" />
+        </Router>
+    </ApolloProvider>
 );
 
 const PREFIX = 'index';

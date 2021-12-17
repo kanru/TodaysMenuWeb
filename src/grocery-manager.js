@@ -1,35 +1,29 @@
 /* eslint-disable no-prototype-builtins */
 
-export const IngredientCategory = ["未知", "蔬菜", "肉", "海鮮", "其他", "主食", "調味料"];
-
-export class GroceryManager {
-
-    constructor(categories) {
-        this.groceryCategory = categories;
-    }
-
+export default class GroceryManager {
     _getCategory(ingredient) {
-        if (!this.groceryCategory.hasOwnProperty(ingredient)) {
-            return IngredientCategory[0];
+        if (!ingredient.category) {
+            return "未知";
         }
-        return this.groceryCategory[ingredient];
+        return ingredient.category;
     }
 
     aggregate(dishes) {
         let groceries = {};
         dishes.map((dish) => {
-            dish.ingredient.map(ingred => {
-                if (ingred.description === undefined) {
+            dish.ingredients.map(recipeIngredient => {
+                let ingredient = recipeIngredient.ingredient;
+                if (ingredient.name === undefined) {
                     return;
                 }
-                let category = this._getCategory(ingred.description);
+                let category = this._getCategory(ingredient);
                 if (!groceries.hasOwnProperty(category)) {
                     groceries[category] = {};
                 }
-                if (!groceries[category].hasOwnProperty(ingred.description)) {
-                    groceries[category][ingred.description] = [[ingred.quantity, dish.name]];
+                if (!groceries[category].hasOwnProperty(ingredient.name)) {
+                    groceries[category][ingredient.name] = [[recipeIngredient.quantity, dish.name]];
                 } else {
-                    groceries[category][ingred.description].push([ingred.quantity, dish.name]);
+                    groceries[category][ingredient.name].push([recipeIngredient.quantity, dish.name]);
                 }
             })
         });

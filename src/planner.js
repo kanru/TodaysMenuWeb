@@ -1,26 +1,58 @@
 import { DishPool } from './dish-pool.js';
 
-const DAYS = 7;
-
-export class LunchPlanner {
+class Planner {
     selected = [];
-    history = [];
+    days = 0;
 
-    constructor(inputDishes) {
-        let dishes = inputDishes.filter(dish => !this.isSuppressed(dish));
-        this.pool = new DishPool(dishes);
+    constructor(days) {
+        this.days = days;
     }
 
     isSuppressed(dish) {
-        return dish.suppressed == 1;
+        return dish.suppressed === undefined ? false : dish.suppressed;
     }
+
+    isOneDish(dish) {
+        return dish.one_dish === undefined ? false : dish.one_dish;
+    }
+
+    isSoup(dish) {
+        return dish.soup === undefined ? false : dish.soup;
+    }
+
+    isMeat(dish) {
+        // TODO: check ingredient for meat
+        return !this.isOneDish(dish) && !this.isSoup(dish);
+    }
+
+    isVegetable(dish) {
+        // TODO: check ingredients for vegetable
+        return !this.isOneDish(dish) && !this.isSoup(dish);
+    }
+
+    cookTime(dish) {
+        return dish.cook_time === undefined ? 0 : dish.cook_time;
+    }
+}
+
+export class LunchPlanner extends Planner {
+    constructor(inputDishes, days) {
+        super(days);
+        let dishes = inputDishes.filter(dish => !this.isSuppressed(dish));
+        if (dishes.length == 0) {
+            throw new Error("Need at least one dish!");
+        }
+        this.pool = new DishPool(dishes);
+    }
+
 
     randomInit() {
         this.selected = [];
-        for (let i = 0; i < DAYS; ++i) {
+        for (let i = 0; i < this.days; ++i) {
             this.selected.push([this.pool.next()]);
         }
-        this.selected.sort((a, b) => a[0].cook_time - b[0].cook_time);
+        
+        this.selected.sort((a, b) => this.cookTime(a[0]) - this.cookTime(b[0]));
 
         return this.selected;
     }
@@ -30,48 +62,28 @@ export class LunchPlanner {
         return this.selected[index];
     }
 
-    // deprecated
-    setHistory(historyData) {
-        this.history = historyData.flat().reduce((list, dish) => list.concat([dish.name]), []);
-        this.pool.weighted(this.history);
-    }
 }
 
-export class DinnerPlanner {
-    selected = [];
-
-    constructor(inputDishes) {
+export class DinnerPlanner extends Planner {
+    constructor(inputDishes, days) {
+        super(days);
         let dishes = inputDishes.filter(dish => !this.isSuppressed(dish));
-        this.soloPool = new DishPool(dishes.filter(dish => this.isSolo(dish)));
+        if (dishes.length == 0) {
+            throw new Error("Need at least one dish!");
+        }
+        // FIXME: the pool separation is incomplete. It doesn't consider all dish characteristic.
+        this.oneDishPool = new DishPool(dishes.filter(dish => this.isOneDish(dish)));
         this.meatPool = new DishPool(dishes.filter(dish => this.isMeat(dish)));
-        this.vegePool = new DishPool(dishes.filter(dish => this.isVege(dish)));
+        this.vegetablePool = new DishPool(dishes.filter(dish => this.isVegetable(dish)));
     }
 
     isSuppressed(dish) {
         return dish.suppressed == 1;
     }
 
-    isSolo(dish) {
-        return dish.solo == 1;
-    }
-
-    isSoup(dish) {
-        return dish.soup == 1;
-    }
-
-    isMeat(dish) {
-        return !this.isSolo(dish) && !this.isSoup(dish) && 
-                (dish.meat >= 0.5 || dish.seafood >= 0.5);
-    }
-
-    isVege(dish) {
-        return !this.isSolo(dish) && !this.isSoup(dish) && 
-                (dish.meat < 0.5 && dish.seafood < 0.5);
-    }
-
     randomInit() {
         this.selected = [];
-        for (let i = 0; i < DAYS; ++i) {
+        for (let i = 0; i < this.days; ++i) {
             this.selected.push(this.getOne());
         }
 
@@ -79,13 +91,18 @@ export class DinnerPlanner {
     }
 
     getOne() {
-        if (Math.floor(Math.random() * 100) % 2) {
-            return [this.soloPool.next()];
+        // FIXME: the logic assumes either oneDishPool or non-oneDishPool won't be empty,
+        // which is incorrect. They could all be empty.
+        if (!this.oneDishPool.isEmpty() && Math.floor(Math.random() * 100) % 2) {
+            return [this.oneDishPool.next()];
+        }
+        if (this.meatPool.isEmpty() || this.vegetablePool.isEmpty()) {
+            return [];
         }
         let first = this.meatPool.next();
-        let second = this.vegePool.next();
+        let second = this.vegetablePool.next();
         if (first == second) {
-            second = this.vegePool.next();
+            second = this.vegetablePool.next();
         }
         return [first, second];
 
@@ -94,13 +111,5 @@ export class DinnerPlanner {
     pickNext(index) {
         this.selected[index] = this.getOne();
         return this.selected[index];
-    }
-
-    // deprecated
-    setHistory(historyData) {
-        this.history = historyData.flat().reduce((list, dish) => list.concat([dish.name]), []);
-        this.soloPool.weighted(this.history);
-        this.meatPool.weighted(this.history);
-        this.vegePool.weighted(this.history);
     }
 }

@@ -38,7 +38,7 @@ const StyledGrid = styled(Grid)((
     }
 }));
 
-const PHOTO_BASE = '/assets/photo/';
+const DEFAULT_PHOTO = '/public/assets/dish_default.jpg';
 
 export default function DayMenu(props) {
     let item = props.item;
@@ -70,7 +70,7 @@ function DishView(props) {
 
 
     let dishes = props.dishes;
-    dishes.map(dish => dish.photo = dish.photo || `${PHOTO_BASE}${dish.name}.jpg`);
+    dishes.map(dish => dish.photo = dish.photo || `${DEFAULT_PHOTO}`);
 
     return <Grid item container>
         {props.dishes.map(dish =>

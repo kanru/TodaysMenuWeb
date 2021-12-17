@@ -56,6 +56,10 @@ export class DishPool {
         this.candidates = (Array.from(Array(this.dishList.length()).keys())).shuffle();
         this.index = 0;
     }
+    
+    isEmpty() {
+        return this.dishList.length() === 0;
+    }
 
     next() {
         if (this.index == this.dishList.length()) {

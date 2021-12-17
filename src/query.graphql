@@ -23,3 +23,11 @@ query GetDishes {
         style
     }
 }
+
+query GetIngredients {
+    ingredients {
+        id
+        name
+        category
+    }
+}
