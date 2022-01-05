@@ -12,7 +12,6 @@ Object.defineProperty(Array.prototype, 'shuffle', {
 export default class DishList {
     constructor(dishes) {
         this.dishes = dishes;
-        // this.dishes = dishes.map(dish => dish);
     }
 
     length() {
@@ -41,10 +40,9 @@ export default class DishList {
     }
 
     createByName(name) {
-        let dish = this.lookupByName("神秘菜單");
-        let newDish = Object.assign({}, dish);
-        newDish.photo = "/assets/logo.png";
+        let newDish = {};
         newDish.name = name;
+        newDish.ingredients = [];
         this.dishes = this.dishes.concat(newDish);
         return newDish;
     }
