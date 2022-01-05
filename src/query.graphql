@@ -31,3 +31,18 @@ query GetIngredients {
         category
     }
 }
+
+query GetShareableMenu($key: String!) {
+    shareableMenu(key: $key) {
+        payload
+        key
+    }
+}
+
+mutation ShareMenu($menu: ShareableMenuInput) {
+  shareMenu(menu: $menu) {
+    success
+    message
+    key
+  }
+}

@@ -18,8 +18,7 @@ import FormDialog from './manual-input.jsx';
 import MenuUtil from './menu-util.js';
 import DayMenu from './menu-view.jsx';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
-import { GetDishes, GetIngredients } from './query.graphql';
-import Redirect from './redirect.js';
+import { GetDishes, GetIngredients, GetShareableMenu, ShareMenu } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
 
 const client = new ApolloClient({
@@ -64,7 +63,7 @@ class App extends Component {
         formDishNames: []
     }
 
-    constructor({ payload }) {
+    constructor({ link }) {
         super();
         this.allDishes = { dishes: [] };
         if (typeof window !== "undefined") {
@@ -76,11 +75,15 @@ class App extends Component {
                         .then(result => this.initGrocery(result.data.ingredients))
                 ])
                 .then(() => {
-                    if (payload) {
-                        let compressed = window.atob(window.decodeURIComponent(payload));
-                        let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
-                        let menu = this.wrapMenu(data);
-                        this.setState({ menu }, () => this.aggregate());
+                    if (link) {
+                        client.query({ query: GetShareableMenu, variables: { key: link } })
+                        .then(result => { 
+                            let payload = result.data.shareableMenu.payload;
+                            let compressed = window.atob(window.decodeURIComponent(payload));
+                            let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
+                            let menu = this.wrapMenu(data);
+                            this.setState({ menu }, () => this.aggregate());
+                        });                        
                     } else {
                         this.aggregate()
                     }
@@ -107,7 +110,7 @@ class App extends Component {
     }
 
     initGrocery(categories) {
-        // FIXME: ingredientCategory should be directly from API.
+        // FIXME: ingredientCategoryList should be directly from API.
         this.groceryCategoryList = categories.reduce((retList, ingredient) => 
                     retList.concat(ingredient.category), []);
         this.groceryManager = new GroceryManager();
@@ -194,16 +197,11 @@ class App extends Component {
 
     shareMenu() {
         const { menu = [] } = this.state;
-        const TM_SHARE_API = '/api/share';
         let compressed = pako.deflate(JSON.stringify(menu), { to: 'string' });
         let payload = window.encodeURIComponent(window.btoa(compressed));
-        fetch(TM_SHARE_API, {
-            method: 'POST',
-            body: payload,
-        })
-            .then(res => res.text())
-            .then(url => {
-                this.setState({ share: true, url: `${location.origin}${url}` });
+        client.mutate({mutation: ShareMenu, variables: {menu: {payload}}})
+            .then(result => {
+                this.setState({ share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` });
             });
     }
 
@@ -261,8 +259,7 @@ const Main = () => (
     <ApolloProvider client={client}>
         <Router>
             <App path="/" />
-            <App path="/menu/:payload" />
-            <Redirect path="/b/:link" />
+            <App path="/m/:link" />
         </Router>
     </ApolloProvider>
 );
