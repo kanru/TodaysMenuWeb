@@ -22,6 +22,7 @@ import { GetDishes, GetIngredients, GetShareableMenu, ShareMenu } from './query.
 import ShareDialog from './share-dialog.jsx';
 
 const client = new ApolloClient({
+    // FIXME: the uri needs to be configurable
     uri: 'http://localhost:8080/graphql',
     cache: new InMemoryCache()
 });
@@ -70,7 +71,7 @@ class App extends Component {
             Promise.all(
                 [
                     client.query({ query: GetDishes })
-                        .then(result => this.initMeal(result.data.dishes)),
+                        .then(result => this.initDishes(result.data.dishes)),
                     client.query( { query: GetIngredients })
                         .then(result => this.initGrocery(result.data.ingredients))
                 ])
@@ -78,14 +79,10 @@ class App extends Component {
                     if (link) {
                         client.query({ query: GetShareableMenu, variables: { key: link } })
                         .then(result => { 
-                            let payload = result.data.shareableMenu.payload;
-                            let compressed = window.atob(window.decodeURIComponent(payload));
-                            let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
-                            let menu = this.wrapMenu(data);
-                            this.setState({ menu }, () => this.aggregate());
+                            this.decodeMenu(result.data.shareableMenu.payload);
                         });                        
                     } else {
-                        this.aggregate()
+                        this.generateMenu();
                     }
                 });
         }
@@ -93,20 +90,15 @@ class App extends Component {
         this.saveMenu = this.saveMenu.bind(this);
         this.shareMenu = this.shareMenu.bind(this);
         this.closeShare = this.closeShare.bind(this);
-        this.loadHistory = this.loadHistory.bind(this);
-        this.getNextDish = this.getNextDish.bind(this);
-        this.initManualInputDishes = this.initManualInputDishes.bind(this);
         this.onManualInputCancel = this.onManualInputCancel.bind(this);
         this.onManualInputConfirm = this.onManualInputConfirm.bind(this);
         this.onManualInputUpdate = this.onManualInputUpdate.bind(this);
-        this.manualSetDish = this.manualSetDish.bind(this);
     }
 
-    initMeal(data) {
+    initDishes(data) {
         this.allDishes = new DishList(data);
         this.lunchPlanner = new LunchPlanner(data.filter(dish => (!dish.meal || dish.meal == "lunch")), DAYS);
         this.dinnerPlanner = new DinnerPlanner(data.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
-        this.generateMenu();
     }
 
     initGrocery(categories) {
@@ -116,34 +108,41 @@ class App extends Component {
         this.groceryManager = new GroceryManager();
     }
 
-    wrapMenu(menu) {
+    bindMenuActions(menu) {
         menu.forEach((item, index) => {
-            item.nextLunch = this.getNextDish.bind(this, index, "lunch");
-            item.nextDinner = this.getNextDish.bind(this, index, "dinner");
-            item.overrideLunch = this.initManualInputDishes.bind(this, index, "lunch");
-            item.overrideDinner = this.initManualInputDishes.bind(this, index, "dinner");
+            item.nextLunchCallback = this.pickNextDish.bind(this, index, "lunch");
+            item.nextDinnerCallback = this.pickNextDish.bind(this, index, "dinner");
+            item.overrideLunchCallback = this.showInputDishesForm.bind(this, index, "lunch");
+            item.overrideDinnerCallback = this.showInputDishesForm.bind(this, index, "dinner");
         });
         return menu;
+    }
+
+    decodeMenu(payload) {
+        let compressed = window.atob(window.decodeURIComponent(payload));
+        let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
+        let menu = this.bindMenuActions(data);
+        this.setState({ menu }, () => this.aggregateGroceries());
     }
 
     generateMenu() {
         let lunch = this.lunchPlanner.randomInit();
         let dinner = this.dinnerPlanner.randomInit();
-        let menu = this.wrapMenu(MenuUtil.composeMenu(startDate, DAYS, lunch, dinner));
-        this.setState({ menu });
+        let menu = this.bindMenuActions(MenuUtil.composeMenu(startDate, DAYS, lunch, dinner));
+        this.setState({ menu }, () => this.aggregateGroceries());
     }
 
-    getNextDish(index, meal) {
+    pickNextDish(index, meal) {
         const { menu = [] } = this.state;
         if (meal == "lunch") {
-            menu[index].lunch = MenuUtil.purifyMeal(this.lunchPlanner.pickNext(index));
+            menu[index].lunch = MenuUtil.cleanMealForView(this.lunchPlanner.pickNext(index));
         } else {
-            menu[index].dinner = MenuUtil.purifyMeal(this.dinnerPlanner.pickNext(index));
+            menu[index].dinner = MenuUtil.cleanMealForView(this.dinnerPlanner.pickNext(index));
         }
-        this.setState({ menu }, () => this.aggregate());
+        this.setState({ menu }, () => this.aggregateGroceries());
     }
 
-    initManualInputDishes(index, meal) {
+    showInputDishesForm(index, meal) {
         const { menu = [] } = this.state;
         let formDishNames = menu[index][meal].map(dish => dish.name);
         this.setState({ showForm: true, formIndex: index, formMeal: meal, formDishNames });
@@ -171,11 +170,11 @@ class App extends Component {
         if (dishes.length == 0) {
             return;
         }
-        menu[index][meal] = MenuUtil.purifyMeal(dishes);
-        this.setState({ menu }, () => this.aggregate());
+        menu[index][meal] = MenuUtil.cleanMealForView(dishes);
+        this.setState({ menu }, () => this.aggregateGroceries());
     }
 
-    aggregate() {
+    aggregateGroceries() {
         const { menu = [] } = this.state;
         let dishes = MenuUtil.extractDishes(menu)
             .reduce((list, dish) => list.concat([this.allDishes.lookupByName(dish.name)]), []);
@@ -190,8 +189,8 @@ class App extends Component {
 
     loadMenu() {
         FileManager.loadJson((data) => {
-            let menu = this.wrapMenu(data);
-            this.setState({ menu }, () => this.aggregate());
+            let menu = this.bindMenuActions(data);
+            this.setState({ menu }, () => this.aggregateGroceries());
         });
     }
 
@@ -209,16 +208,6 @@ class App extends Component {
         this.setState({ share: false });
     }
 
-    // deprecated
-    loadHistory() {
-        FileManager.loadJson((data) => {
-            let menu = data.flat();
-            this.lunchPlanner.setHistory(MenuUtil.extractMeals(menu, "lunch"));
-            this.dinnerPlanner.setHistory(MenuUtil.extractMeals(menu, "dinner"));
-            this.generateMenu();
-        });
-    }
-
     render({ }, { menu = [], groceries = {}, share, url }) {
 
         return (
@@ -227,7 +216,7 @@ class App extends Component {
                 <ThemeProvider theme={theme}>
                     <div>
                         <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
-                            onClickLoadHistory={this.loadHistory} onClickShareMenu={this.shareMenu} />
+                            onClickShareMenu={this.shareMenu} />
                         <FormDialog open={this.state.showForm}
                             defaultValue={this.state.formDishNames}
                             options={this.allDishes.dishes.map(dish => dish.name)}

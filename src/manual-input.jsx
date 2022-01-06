@@ -23,7 +23,6 @@ const StyledDialog = styled(Dialog)(() => ({
 
 export default function FormDialog(props) {
 
-
     return (
         <StyledDialog open={props.open} onClose={props.onClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">手動輸入</DialogTitle>

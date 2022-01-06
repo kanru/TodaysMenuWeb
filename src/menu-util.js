@@ -5,10 +5,9 @@ const DATE_FORMAT = "MM/DD (ddd)";
 
 export default class MenuUtil {
 
-    static purifyMeal(dishes) {
+    static cleanMealForView(dishes) {
         return dishes.reduce((list, dish) => list.concat([{
             name: dish.name,
-            cook_time: dish.cook_time,
             photo: dish.photo
         }]), []);
     }
@@ -20,8 +19,8 @@ export default class MenuUtil {
             let item = {
                 id: date.format(DATE_ID),
                 date: date.format(DATE_FORMAT),
-                lunch: this.purifyMeal(lunch[i]),
-                dinner: this.purifyMeal(dinner[i])
+                lunch: this.cleanMealForView(lunch[i]),
+                dinner: this.cleanMealForView(dinner[i])
             }
             menu.push(item);
         }

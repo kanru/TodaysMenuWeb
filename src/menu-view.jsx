@@ -38,7 +38,7 @@ const StyledGrid = styled(Grid)((
     }
 }));
 
-const DEFAULT_PHOTO = '/public/assets/dish_default.jpg';
+const DEFAULT_PHOTO = '/assets/dish_default.jpg';
 
 export default function DayMenu(props) {
     let item = props.item;
@@ -49,16 +49,16 @@ export default function DayMenu(props) {
             </Grid>
             <Grid item container spacing={2}>
                 <Grid item>
-                    <DishView dishes={item.lunch} onClick={item.overrideLunch} />
+                    <DishView dishes={item.lunch} onClick={item.overrideLunchCallback} />
                     <Grid item>
-                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextLunch} />
+                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextLunchCallback} />
                     </Grid>
                 </Grid>
                 <Divider orientation="vertical" flexItem />
                 <Grid item>
-                    <DishView dishes={item.dinner} onClick={item.overrideDinner} />
+                    <DishView dishes={item.dinner} onClick={item.overrideDinnerCallback} />
                     <Grid item>
-                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextDinner} />
+                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextDinnerCallback} />
                     </Grid>
                 </Grid>
             </Grid>
@@ -83,7 +83,6 @@ function DishView(props) {
                     />
                     <div class="dish description">
                         <span class="name">{dish.name} </span>
-                        <span class="time">({dish.cook_time} min)</span>
                     </div>
                 </CardActionArea>
             </Card>

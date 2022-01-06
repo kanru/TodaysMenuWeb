@@ -29,7 +29,6 @@ const StyledAppBar = styled(AppBar)(() => ({
 
 export default function MyAppBar(props) {
 
-
     return (
         <StyledAppBar position="static" className={classes.root}>
             <Toolbar>
