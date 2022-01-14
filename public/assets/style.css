@@ -2,17 +2,6 @@
     background-color: #eee;
 }
 
-/*** Menu view ***/
-.dish.description {
-    width: 150px;
-    padding: 5px; 
-}
-
-.dish.description .time {
-    color: gray;
-    font-size: x-small;
-}
-
 /*** Grocery view ***/
 .category .category-name {
     padding: 5px;
@@ -26,4 +15,4 @@
 
 .category .grocery .quantity span:not(:last-child):after { 
     content: ' + '; 
-} 
+}

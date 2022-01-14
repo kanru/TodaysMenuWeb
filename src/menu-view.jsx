@@ -1,14 +1,17 @@
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable react/jsx-key */
-import AutorenewIcon from '@mui/icons-material/Autorenew';
+import ShuffleRoundedIcon from '@mui/icons-material/ShuffleRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import DriveFileRenameOutlineRoundedIcon from '@mui/icons-material/DriveFileRenameOutlineRounded';
 import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
+import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-
 
 const PREFIX = 'menu-view';
 
@@ -23,19 +26,20 @@ const StyledGrid = styled(Grid)((
     }
 ) => ({
     [`& .${classes.card}`]: {
-        maxWidth: 110,
+        maxWidth: 150,
         [theme.breakpoints.up('md')]: {
             maxWidth: 150,
         },
         minWidth: 50,
+        width: 150,
     },
 
     [`& .${classes.media}`]: {
-        height: 80,
+        height: 150,
         [theme.breakpoints.up('md')]: {
             height: 150,
         },
-    }
+    },
 }));
 
 const DEFAULT_PHOTO = '/assets/dish_default.jpg';
@@ -44,22 +48,19 @@ export default function DayMenu(props) {
     let item = props.item;
     return (
         <StyledGrid item container key={item.id}>
-            <Grid item>
-                <Typography variant="h2">{item.date}</Typography>
+            <Grid item xs={12}>
+                <Typography variant="h2" sx={{ fontSize: '1.25rem', fontWeight: '500', padding: '10px 0' }}>{item.date}</Typography>
             </Grid>
-            <Grid item container spacing={2}>
-                <Grid item>
-                    <DishView dishes={item.lunch} onClick={item.overrideLunchCallback} />
-                    <Grid item>
-                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextLunchCallback} />
-                    </Grid>
+            <Grid item container xs={4} spacing={1}>
+                <DishView dishes={item.lunch} editDishCallback={item.showEditDishCallback} />
+                <Grid item xs={12}>
+                    <MealActions nextCallback={item.nextLunchCallback} overrideCallback={item.overrideLunchCallback} />
                 </Grid>
-                <Divider orientation="vertical" flexItem />
+            </Grid>
+            <Grid item container xs={8} spacing={1}>
+                <DishView dishes={item.dinner} editDishCallback={item.showEditDishCallback} />
                 <Grid item>
-                    <DishView dishes={item.dinner} onClick={item.overrideDinnerCallback} />
-                    <Grid item>
-                        <Chip variant="outlined" size="small" icon={<AutorenewIcon />} label="選別的" onClick={item.nextDinnerCallback} />
-                    </Grid>
+                    <MealActions nextCallback={item.nextDinnerCallback} overrideCallback={item.overrideDinnerCallback} />
                 </Grid>
             </Grid>
         </StyledGrid>
@@ -68,25 +69,43 @@ export default function DayMenu(props) {
 
 function DishView(props) {
 
-
     let dishes = props.dishes;
     dishes.map(dish => dish.photo = dish.photo || `${DEFAULT_PHOTO}`);
 
-    return <Grid item container>
-        {props.dishes.map(dish =>
+    let editDishCallback = function(_event) {
+        let ele = _event.target;
+        while (!ele.dataset.hasOwnProperty('name')) {
+            ele = ele.parentNode;
+        }
+        let dishName = ele.dataset.name;
+        props.editDishCallback(dishName);
+    }
+
+    return <Grid item container xs={12}>
+        {dishes.map(dish =>
             <Card className={classes.card} variant="outlined">
-                <CardActionArea onClick={props.onClick} >
-                    <CardMedia
-                        className={classes.media}
-                        image={dish.photo}
-                        title={dish.name}
-                    />
-                    <div class="dish description">
-                        <span class="name">{dish.name} </span>
-                    </div>
-                </CardActionArea>
+                <CardMedia
+                    className={classes.media}
+                    image={dish.photo}
+                    title={dish.name}
+                />
+                <CardHeader disableTypography sx={{ padding: '0px 5px' }}
+                    title={dish.name}
+                    action={
+                        <IconButton aria-label="settings" onClick={editDishCallback} data-name={dish.name}>
+                            <DriveFileRenameOutlineRoundedIcon />
+                        </IconButton>
+                    }
+                />
             </Card>
         )}
     </Grid>;
+}
+
+function MealActions(props) {
+    return <Stack direction="row" spacing={0.5}>
+        <Chip variant="outlined" size="small" icon={<ShuffleRoundedIcon />} label="隨機選" onClick={props.nextCallback} />
+        <Chip variant="outlined" size="small" icon={<SearchRoundedIcon />} label="自己挑" onClick={props.overrideCallback} />
+    </Stack>;
 }
 

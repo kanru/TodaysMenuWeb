@@ -23,12 +23,7 @@ export default class DishList {
     }
 
     indexByName(name) {
-        for (let i = 0; i < this.dishes.length; ++i) {
-            if (this.dishes[i].name == name) {
-                return i;
-            }
-        }
-        return -1;
+        return this.dishes.findIndex((dish) => dish.name == name);
     }
 
     lookupByName(name) {
@@ -46,9 +41,25 @@ export default class DishList {
         this.dishes = this.dishes.concat(newDish);
         return newDish;
     }
+
+    update(dish) {
+        let updated = false;
+
+        this.dishes = this.dishes.map(dishItem => {
+            if (dish.name === dishItem.name ) {
+                updated = true;
+                return dish;
+            }
+            return dishItem;
+        })
+        if (!updated) {
+            throw Error('Can not find the dish to update');
+        }
+    }
 }
 
 export class DishPool {
+
     constructor(dishes) {
         this.dishList = new DishList(dishes);
         this.candidates = (Array.from(Array(this.dishList.length()).keys())).shuffle();

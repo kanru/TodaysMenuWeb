@@ -1,38 +1,20 @@
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import { styled } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-
-
-const PREFIX = 'appbar-view';
-
-const classes = {
-    root: `${PREFIX}-root`,
-    title: `${PREFIX}-title`
-};
-
-const StyledAppBar = styled(AppBar)(() => ({
-    [`&.${classes.root}`]: {
-        background: 'url(/assets/logo.png) no-repeat',
-        backgroundColor: '#ea6753',
-        backgroundSize: 'auto 80%',
-        backgroundPosition: 'center left'
-    },
-
-    [`& .${classes.title}`]: {
-        flexGrow: 1,
-        marginLeft: '30px',
-    }
-}));
 
 export default function MyAppBar(props) {
 
     return (
-        <StyledAppBar position="static" className={classes.root}>
+        <AppBar position="static" sx={{
+            background: 'url(/assets/logo.png) no-repeat',
+            backgroundColor: '#ea6753',
+            backgroundSize: 'auto 80%',
+            backgroundPosition: 'center left'
+        }}>
             <Toolbar>
-                <Typography variant="h1" className={classes.title}>
+                <Typography variant="h1" sx={{ flexGrow: 1, marginLeft: '30px', fontSize: '1.25rem', fontWeight: '500' }}>
                     Today's Menu
                 </Typography>
                 <ButtonGroup variant="contained" color="appbar" aria-label="outlined primary button group">
@@ -41,6 +23,6 @@ export default function MyAppBar(props) {
                     <Button onClick={props.onClickShareMenu}>分享</Button>
                 </ButtonGroup>
             </Toolbar>
-        </StyledAppBar>
+        </AppBar>
     );
 }

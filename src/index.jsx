@@ -15,6 +15,7 @@ import FileManager from './file-manager.js';
 import GroceryManager from './grocery-manager.js';
 import GroceryView from './grocery-view.jsx';
 import FormDialog from './manual-input.jsx';
+import EditDishForm from './edit-dish.jsx';
 import MenuUtil from './menu-util.js';
 import DayMenu from './menu-view.jsx';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
@@ -36,20 +37,6 @@ const theme = createTheme({
         appbar: {
             main: grey[300],
             contrastText: 'black'
-        }
-    },
-    typography: {
-        h1: {
-            color: 'white',
-            fontSize: '1.25rem',
-            fontWeight: 500,
-            letterSpacing: "0.0075em"
-        },
-        h2: {
-            color: 'black',
-            fontSize: '1.25rem',
-            fontWeight: 500,
-            letterSpacing: "0.0075em"
         },
     }
 });
@@ -61,12 +48,15 @@ class App extends Component {
         showForm: false,
         formIndex: 0,
         formMeal: "",
-        formDishNames: []
+        formDishNames: [],
+        showEditDish: false,
+        editingDish: {},
     }
 
     constructor({ link }) {
         super();
         this.allDishes = { dishes: [] };
+        this.allIngredients = [];
         if (typeof window !== "undefined") {
             Promise.all(
                 [
@@ -93,6 +83,8 @@ class App extends Component {
         this.onManualInputCancel = this.onManualInputCancel.bind(this);
         this.onManualInputConfirm = this.onManualInputConfirm.bind(this);
         this.onManualInputUpdate = this.onManualInputUpdate.bind(this);
+        this.onEditDishCancel = this.onEditDishCancel.bind(this);
+        this.onEditDishConfirm = this.onEditDishConfirm.bind(this);
     }
 
     initDishes(data) {
@@ -101,9 +93,9 @@ class App extends Component {
         this.dinnerPlanner = new DinnerPlanner(data.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
     }
 
-    initGrocery(categories) {
-        // FIXME: ingredientCategoryList should be directly from API.
-        this.groceryCategoryList = categories.reduce((retList, ingredient) => 
+    initGrocery(ingredients) {
+        this.allIngredients = ingredients;
+        this.groceryCategoryList = ingredients.reduce((retList, ingredient) => 
                     retList.concat(ingredient.category), []);
         this.groceryManager = new GroceryManager();
     }
@@ -114,6 +106,7 @@ class App extends Component {
             item.nextDinnerCallback = this.pickNextDish.bind(this, index, "dinner");
             item.overrideLunchCallback = this.showInputDishesForm.bind(this, index, "lunch");
             item.overrideDinnerCallback = this.showInputDishesForm.bind(this, index, "dinner");
+            item.showEditDishCallback = this.showEditDishForm.bind(this);
         });
         return menu;
     }
@@ -174,6 +167,28 @@ class App extends Component {
         this.setState({ menu }, () => this.aggregateGroceries());
     }
 
+    showEditDishForm(name) {
+        let editingDish = this.allDishes.lookupByName(name);
+        this.setState({ showEditDish: true, editingDish });
+    }
+
+    onEditDishCancel() {
+        this.setState({ showEditDish: false });
+    }
+
+    onEditDishConfirm(dish) {
+        // TODO: update backend dish and ingredient
+        this.allDishes.update(dish);
+        dish.ingredients.forEach((element) => {
+            if (!this.allIngredients.find((item) => item.name === element.ingredient.name)) {
+                this.allIngredients = this.allIngredients.concat([element.ingredient]);
+            }
+        });
+        // TODO: will need to update planner's dish pool too when we can update other dish details
+        this.setState({ showEditDish: false });
+        this.aggregateGroceries();
+    }
+
     aggregateGroceries() {
         const { menu = [] } = this.state;
         let dishes = MenuUtil.extractDishes(menu)
@@ -223,9 +238,14 @@ class App extends Component {
                             onCancel={this.onManualInputCancel}
                             onClose={this.onManualInputConfirm}
                             onChange={this.onManualInputUpdate} />
+                        <EditDishForm open={this.state.showEditDish}
+                            defaultValue={this.state.editingDish}
+                            options={this.allIngredients}
+                            onCancel={this.onEditDishCancel}
+                            onClose={this.onEditDishConfirm} />
                         <div style={{ padding: 5 }}>
                             <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
-                                <Grid container item xs={12} md={6} lg={5}>
+                                <Grid container item xs={12} md={6} lg={5} spacing={2}>
                                     {menu.map(item => <DayMenu item={item} />)}
                                 </Grid>
                                 <Grid item xs={12} md={6} lg={5}>
