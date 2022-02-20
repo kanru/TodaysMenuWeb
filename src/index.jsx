@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { ApolloClient, ApolloProvider, InMemoryCache, useQuery } from "@apollo/client";
 import { CssBaseline } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
 import Grid from '@mui/material/Grid';

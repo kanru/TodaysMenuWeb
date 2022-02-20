@@ -57,8 +57,22 @@ export default function EditDishForm(props) {
             ]
         });
     }
-    const ingredientUpdateCallback = (index, value) => editedDish.ingredients[index].ingredient = value;
-    const quantityUpdateCallback = (index, value) => editedDish.ingredients[index].quantity = value;
+    const ingredientUpdateCallback = (index, value) => {
+        const updatedIngredients = [...editedDish.ingredients];
+        updatedIngredients[index].ingredient = value;
+        props.onChange({
+            ...editedDish,
+            ingredients: updatedIngredients
+        });
+    }
+    const quantityUpdateCallback = (index, value) => {
+        const updatedIngredients = [...editedDish.ingredients];
+        updatedIngredients[index].quantity = value;
+        props.onChange({
+            ...editedDish,
+            ingredients: updatedIngredients
+        });
+    }
     const insertNewIngredient = () => {
         props.onChange({
             ...editedDish,

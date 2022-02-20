@@ -40,9 +40,16 @@ query GetShareableMenu($key: String!) {
 }
 
 mutation ShareMenu($menu: ShareableMenuInput) {
-  shareMenu(menu: $menu) {
-    success
-    message
-    key
-  }
+    shareMenu(menu: $menu) {
+        success
+        message
+        key
+    }
+}
+
+mutation AddNewIngredients($ingredients: [IngredientInput]) {
+    addNewIngredients(ingredients: $ingredients) {
+        success
+        message
+    }
 }
