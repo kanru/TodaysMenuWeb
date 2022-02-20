@@ -9,13 +9,14 @@ import TextField from '@mui/material/TextField';
 import { Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 import { useMutation } from '@apollo/client';
-import { AddNewIngredients, GetIngredients } from './query.graphql';
+import { AddNewIngredients, GetIngredients, GetDishes } from './query.graphql';
 
 
 export default function IngredientChooser(props) {
     const [addNewIngredients] = useMutation(AddNewIngredients, {
         refetchQueries: [
-            GetIngredients
+            GetIngredients,
+            GetDishes
         ]
     });
     const value = props.options.find(element => element.name === props.ingredientName) || "";

@@ -22,6 +22,11 @@ query GetDishes {
         soup
         style
     }
+    ingredients {
+        id
+        name
+        category
+    }
 }
 
 query GetIngredients {

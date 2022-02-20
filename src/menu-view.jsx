@@ -52,15 +52,15 @@ export default function DayMenu(props) {
                 <Typography variant="h2" sx={{ fontSize: '1.25rem', fontWeight: '500', padding: '10px 0' }}>{item.date}</Typography>
             </Grid>
             <Grid item container xs={4} spacing={1}>
-                <DishView dishes={item.lunch} editDishCallback={item.showEditDishCallback} />
+                <DishView dishes={item.lunch} editDishCallback={props.editDishCallback} />
                 <Grid item xs={12}>
-                    <MealActions nextCallback={item.nextLunchCallback} overrideCallback={item.overrideLunchCallback} />
+                    <MealActions nextCallback={props.nextLunchCallback} overrideCallback={props.overrideLunchCallback} />
                 </Grid>
             </Grid>
             <Grid item container xs={8} spacing={1}>
-                <DishView dishes={item.dinner} editDishCallback={item.showEditDishCallback} />
+                <DishView dishes={item.dinner} editDishCallback={props.editDishCallback} />
                 <Grid item>
-                    <MealActions nextCallback={item.nextDinnerCallback} overrideCallback={item.overrideDinnerCallback} />
+                    <MealActions nextCallback={props.nextDinnerCallback} overrideCallback={props.overrideDinnerCallback} />
                 </Grid>
             </Grid>
         </StyledGrid>
