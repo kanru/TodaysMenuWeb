@@ -62,15 +62,15 @@ class App extends Component {
                 [
                     client.query({ query: GetDishes })
                         .then(result => this.initDishes(result.data.dishes)),
-                    client.query( { query: GetIngredients })
+                    client.query({ query: GetIngredients })
                         .then(result => this.initGrocery(result.data.ingredients))
                 ])
                 .then(() => {
                     if (link) {
                         client.query({ query: GetShareableMenu, variables: { key: link } })
-                        .then(result => { 
-                            this.decodeMenu(result.data.shareableMenu.payload);
-                        });                        
+                            .then(result => {
+                                this.decodeMenu(result.data.shareableMenu.payload);
+                            });
                     } else {
                         this.generateMenu();
                     }
@@ -84,6 +84,7 @@ class App extends Component {
         this.onManualInputConfirm = this.onManualInputConfirm.bind(this);
         this.onManualInputUpdate = this.onManualInputUpdate.bind(this);
         this.onEditDishCancel = this.onEditDishCancel.bind(this);
+        this.onEditDishChange = this.onEditDishChange.bind(this);
         this.onEditDishConfirm = this.onEditDishConfirm.bind(this);
     }
 
@@ -95,8 +96,8 @@ class App extends Component {
 
     initGrocery(ingredients) {
         this.allIngredients = ingredients;
-        this.groceryCategoryList = ingredients.reduce((retList, ingredient) => 
-                    retList.concat(ingredient.category), []);
+        this.groceryCategoryList = ingredients.reduce((retList, ingredient) =>
+            retList.concat(ingredient.category), []);
         this.groceryManager = new GroceryManager();
     }
 
@@ -176,6 +177,10 @@ class App extends Component {
         this.setState({ showEditDish: false });
     }
 
+    onEditDishChange(editingDish) {
+        this.setState({ editingDish });
+    }
+
     onEditDishConfirm(dish) {
         // TODO: update backend dish and ingredient
         this.allDishes.update(dish);
@@ -213,7 +218,7 @@ class App extends Component {
         const { menu = [] } = this.state;
         let compressed = pako.deflate(JSON.stringify(menu), { to: 'string' });
         let payload = window.encodeURIComponent(window.btoa(compressed));
-        client.mutate({mutation: ShareMenu, variables: {menu: {payload}}})
+        client.mutate({ mutation: ShareMenu, variables: { menu: { payload } } })
             .then(result => {
                 this.setState({ share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` });
             });
@@ -238,11 +243,14 @@ class App extends Component {
                             onCancel={this.onManualInputCancel}
                             onClose={this.onManualInputConfirm}
                             onChange={this.onManualInputUpdate} />
-                        <EditDishForm open={this.state.showEditDish}
+                        <EditDishForm
+                            open={this.state.showEditDish}
                             defaultValue={this.state.editingDish}
                             options={this.allIngredients}
                             onCancel={this.onEditDishCancel}
-                            onClose={this.onEditDishConfirm} />
+                            onClose={this.onEditDishConfirm}
+                            onChange={this.onEditDishChange}
+                        />
                         <div style={{ padding: 5 }}>
                             <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
                                 <Grid container item xs={12} md={6} lg={5} spacing={2}>
