@@ -6,8 +6,9 @@ import { blue, grey } from '@mui/material/colors';
 import { createTheme, styled, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
 import moment from 'moment';
 import pako from 'pako';
-import { render } from 'preact';
-import Router from 'preact-router';
+import { useState } from "react";
+import { render } from 'react-dom';
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import MyAppBar from './appbar-view.jsx';
 import DishList from './dish-pool.js';
 import FileManager from './file-manager.js';
@@ -17,7 +18,6 @@ import MenuUtil from './menu-util.js';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
 import { GetDishes, GetShareableMenu, ShareMenu, UpdateDishes } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
-import { useState } from "preact/hooks";
 import GroceryList from "./grocery-list.jsx";
 import DayMenu from "./menu-view.jsx";
 
@@ -52,6 +52,7 @@ function App(props) {
         editingDish: {},
         menu: undefined,
     });
+
     let [updateDishes] = useMutation(UpdateDishes, {
         refetchQueries: [
             GetDishes
@@ -59,6 +60,7 @@ function App(props) {
     });
 
     // TODO handle props.link for shareable menu
+    let params = useParams();
 
     const decodeMenu = (payload) => {
         let compressed = window.atob(window.decodeURIComponent(payload));
@@ -173,7 +175,7 @@ function App(props) {
     let { data, loading } = useQuery(GetDishes);
 
     if (loading) {
-        return;
+        return null;
     }
 
     const allDishes = new DishList(data.dishes);
@@ -182,7 +184,7 @@ function App(props) {
 
     if (state.menu == undefined) {
         generateMenu();
-        return;
+        return null;
     }
 
     return (
@@ -216,6 +218,7 @@ function App(props) {
                             <Grid container item xs={12} md={6} lg={5} spacing={2}>
                                 {state.menu.map((item, index) =>
                                     <DayMenu
+                                        key={index.toString()}
                                         editDishCallback={showEditDishForm}
                                         nextLunchCallback={() => pickNextDish(index, "lunch")}
                                         nextDinnerCallback={() => pickNextDish(index, "dinner")}
@@ -236,10 +239,12 @@ function App(props) {
 
 const Main = () => (
     <ApolloProvider client={client}>
-        <Router>
-            <App path="/" />
-            <App path="/m/:link" />
-        </Router>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/m/:link" element={<App />} />
+            </Routes>
+        </BrowserRouter>
     </ApolloProvider>
 );
 
@@ -255,4 +260,4 @@ const StyledMain = styled(Main)(() => ({
     }
 }));
 
-render(<StyledMain />, document.body);
+render(<StyledMain />, document.getElementById('root'));

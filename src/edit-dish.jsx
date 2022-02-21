@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { Fragment } from 'preact';
+import { Fragment } from 'react';
 import IngredientChooser from './ingredient-chooser';
 import QuantityUpdater from './quantity-updater';
 
@@ -97,7 +97,7 @@ export default function EditDishForm(props) {
             <DialogTitle id="form-dialog-title">編輯[{dish.name}]</DialogTitle>
             <DialogContent>
                 {editedDish.ingredients.map((recipeIngredient, index) => {
-                    return <Fragment>
+                    return <Fragment key={index.toString()}>
                         <IngredientChooser
                             index={index}
                             ingredientName={recipeIngredient.ingredient.name}

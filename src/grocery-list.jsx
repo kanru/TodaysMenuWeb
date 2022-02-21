@@ -26,7 +26,7 @@ export default function GroceryList(props) {
             {groceryCategoryList && groceryCategoryList
                 .filter(category => groceries[category])
                 .map(category =>
-                    <GroceryView category={category} items={groceries[category]} />)}
+                    <GroceryView key={category} category={category} items={groceries[category]} />)}
         </Grid>
     );
 }

@@ -1,7 +1,6 @@
 import TextField from '@mui/material/TextField';
 
-import { useState } from 'preact/hooks';
-
+import { useState } from 'react';
 
 export default function QuantityUpdater(props) {
     const [value, setValue] = useState(props.quantity);

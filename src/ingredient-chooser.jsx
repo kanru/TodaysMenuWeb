@@ -6,8 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
-import { Fragment } from 'preact';
-import { useState } from 'preact/hooks';
+import { Fragment, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { AddNewIngredients, GetIngredients, GetDishes } from './query.graphql';
 
