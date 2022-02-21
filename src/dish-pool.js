@@ -1,13 +1,11 @@
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
-Object.defineProperty(Array.prototype, 'shuffle', {
-    value() {
-        for (let i = this.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this[i], this[j]] = [this[j], this[i]];
-        }
-        return this;
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
-});
+    return array;
+}
 
 export default class DishList {
     constructor(dishes) {
@@ -35,9 +33,11 @@ export default class DishList {
     }
 
     createByName(name) {
-        let newDish = {};
-        newDish.name = name;
-        newDish.ingredients = [];
+        let newDish = {
+            name,
+            ingredients: [],
+            isDraft: true
+        };
         this.dishes = this.dishes.concat(newDish);
         return newDish;
     }
@@ -62,7 +62,7 @@ export class DishPool {
 
     constructor(dishes) {
         this.dishList = new DishList(dishes);
-        this.candidates = (Array.from(Array(this.dishList.length()).keys())).shuffle();
+        this.candidates = shuffle(Array.from(Array(this.dishList.length()).keys()));
         this.index = 0;
     }
     

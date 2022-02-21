@@ -60,7 +60,7 @@ export default function EditDishForm(props) {
             quantity: value
         };
         props.onChange({
-            ...editedDish,
+            ...dish,
             ingredients: updatedIngredients
         });
         setShouldValidate(false);

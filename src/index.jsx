@@ -16,7 +16,7 @@ import FormDialog from './manual-input.jsx';
 import EditDishForm from './edit-dish.jsx';
 import MenuUtil from './menu-util.js';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
-import { GetDishes, GetShareableMenu, ShareMenu, UpdateDishes } from './query.graphql';
+import { GetDishes, GetShareableMenu, ShareMenu, AddNewDishes, UpdateDishes } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
 import GroceryList from "./grocery-list.jsx";
 import DayMenu from "./menu-view.jsx";
@@ -54,6 +54,11 @@ function App(props) {
     });
 
     let [updateDishes] = useMutation(UpdateDishes, {
+        refetchQueries: [
+            GetDishes
+        ]
+    });
+    let [addNewDishes] = useMutation(AddNewDishes, {
         refetchQueries: [
             GetDishes
         ]
@@ -129,21 +134,22 @@ function App(props) {
     }
 
     const onEditDishConfirm = (dish) => {
-        updateDishes({
-            variables: {
-                "dishes": [
+        let dishes = [
+            {
+                name: dish.name,
+                ingredients: dish.ingredients.map(item => (
                     {
-                        name: dish.name,
-                        ingredients: dish.ingredients.map(item => (
-                            {
-                                name: item.ingredient.name,
-                                quantity: item.quantity
-                            }
-                        ))
+                        name: item.ingredient.name,
+                        quantity: item.quantity
                     }
-                ]
+                ))
             }
-        });
+        ];
+        if (dish.isDraft) {
+            addNewDishes({ variables: { dishes } })
+        } else {
+            updateDishes({ variables: { dishes } });
+        }
         setState((currentState) => ({ ...currentState, showEditDish: false }));
     }
 
