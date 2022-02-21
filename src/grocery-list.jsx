@@ -14,11 +14,12 @@ export default function GroceryList(props) {
     }
 
     const groceryManager = new GroceryManager();
-    const groceryCategoryList = data.ingredients
-        .reduce((retList, ingredient) => retList.concat(ingredient.category), []);
+    const groceryCategoryList = Array.from(data.ingredients
+        .reduce((set, ingredient) => set.add(ingredient.category), new Set()));
     const dishes = MenuUtil
         .extractDishes(props.menu)
         .reduce((list, dish) => list.concat([props.allDishes.lookupByName(dish.name)]), []);
+    console.debug(dishes);
     const groceries = groceryManager.aggregate(dishes);
 
     return (
