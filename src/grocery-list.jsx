@@ -19,7 +19,6 @@ export default function GroceryList(props) {
     const dishes = MenuUtil
         .extractDishes(props.menu)
         .reduce((list, dish) => list.concat([props.allDishes.lookupByName(dish.name)]), []);
-    console.debug(dishes);
     const groceries = groceryManager.aggregate(dishes);
 
     return (
