@@ -38,6 +38,7 @@ export default function IngredientChooser(props) {
                 ]
             }
         });
+        updateValue(dialogValue);
         setOpenDialog(false);
     };
 
