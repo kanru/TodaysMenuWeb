@@ -80,6 +80,7 @@ export default function EditDishForm(props) {
             ingredients,
             photo: dishPhotoFile
         });
+        setDishPhotoFile(null);
     }
     const onCancel = () => {
         setShouldValidate(false);
