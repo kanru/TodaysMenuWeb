@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
 import { ApolloClient, ApolloProvider, InMemoryCache, useQuery, useMutation } from "@apollo/client";
+import { createUploadLink } from "apollo-upload-client";
 import { CssBaseline, Grid } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
 import { createTheme, styled, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
@@ -23,7 +24,7 @@ import DayMenu from "./menu-view.jsx";
 
 const client = new ApolloClient({
     // FIXME: the uri needs to be configurable
-    uri: 'http://localhost:8080/graphql',
+    link: createUploadLink({ uri: 'http://localhost:8080/graphql' }),
     cache: new InMemoryCache()
 });
 
@@ -142,7 +143,8 @@ function App(props) {
                         name: item.ingredient.name,
                         quantity: item.quantity
                     }
-                ))
+                )),
+                photo: dish.photo
             }
         ];
         if (dish.isDraft) {
@@ -193,6 +195,17 @@ function App(props) {
         return null;
     }
 
+    // TODO make state.menu slim
+    // Currently the menu state also contains a snapshot of detail dish data
+    // so we need to patch the dish data to the latest version.
+    let patchedMenu = state.menu.map(dayMenu => (
+        {
+            ...dayMenu,
+            lunch: dayMenu.lunch.map(lunchMenu => allDishes.lookupByName(lunchMenu.name)),
+            dinner: dayMenu.dinner.map(dinnerMenu => allDishes.lookupByName(dinnerMenu.name))
+        }
+    ));
+
     return (
         <StyledEngineProvider injectFirst>
             <CssBaseline />
@@ -222,7 +235,7 @@ function App(props) {
                     <div style={{ padding: 5 }}>
                         <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
                             <Grid container item xs={12} md={6} lg={5} spacing={2}>
-                                {state.menu.map((item, index) =>
+                                {patchedMenu.map((item, index) =>
                                     <DayMenu
                                         key={index}
                                         editDishCallback={showEditDishForm}
@@ -233,7 +246,7 @@ function App(props) {
                                         item={item}
                                     />)}
                             </Grid>
-                            <GroceryList menu={state.menu} allDishes={allDishes} />
+                            <GroceryList menu={patchedMenu} allDishes={allDishes} />
                         </Grid>
                     </div>
                     <ShareDialog open={state.share} url={state.url} onClose={closeShare} />

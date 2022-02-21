@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-key */
-import { IconButton } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { IconButton, ButtonBase } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -11,6 +12,46 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Fragment, useState } from 'react';
 import IngredientChooser from './ingredient-chooser';
 import QuantityUpdater from './quantity-updater';
+import { nanoid } from 'nanoid';
+import Resizer from "react-image-file-resizer";
+
+const Input = styled('input')({
+    display: 'none',
+});
+
+function DishPhotoEditButton(props) {
+
+    const onChange = ({
+        target: {
+            validity,
+            files: [file],
+        },
+    }) => {
+        if (validity.valid) {
+            Resizer.imageFileResizer(
+                file,
+                256,
+                256,
+                "JPEG",
+                100,
+                0,
+                (file) => props.onChange(file),
+                "file"
+            );
+        }
+    }
+    let labelId = nanoid();
+    return (
+        <div style={{ margin: '1rem' }}>
+            <label htmlFor={labelId}>
+                <Input accept='image/*' id={labelId} type='file' onChange={onChange} />
+                <ButtonBase component="span">
+                    <img src={props.src} width='256' height='256' />
+                </ButtonBase>
+            </label>
+        </div>
+    )
+}
 
 /**
  * The data and state flow of this component is from top-down.
@@ -26,6 +67,7 @@ export default function EditDishForm(props) {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     const [shouldValidate, setShouldValidate] = useState(false);
+    const [dishPhotoFile, setDishPhotoFile] = useState(null);
 
     const onClose = () => {
         const ingredients = dish.ingredients.filter(item => item.ingredient.name);
@@ -35,7 +77,8 @@ export default function EditDishForm(props) {
         }
         props.onClose({
             ...dish,
-            ingredients
+            ingredients,
+            photo: dishPhotoFile
         });
     }
     const onCancel = () => {
@@ -80,6 +123,14 @@ export default function EditDishForm(props) {
             ]
         });
     }
+    const onDishPhotoFileChange = (file) => {
+        setDishPhotoFile(file);
+    }
+    const DEFAULT_PHOTO = '/assets/dish_default.jpg';
+    let dishPhotoSrc = dish.photo ? `http://localhost:8080/photos/${dish.photo.filename}` : DEFAULT_PHOTO;
+    if (dishPhotoFile) {
+        dishPhotoSrc = URL.createObjectURL(dishPhotoFile);
+    }
 
     return (
         <Dialog fullScreen={fullScreen} fullWidth maxWidth='sm'
@@ -88,6 +139,7 @@ export default function EditDishForm(props) {
             aria-labelledby="form-dialog">
             <DialogTitle id="form-dialog-title">編輯[{dish.name}]</DialogTitle>
             <DialogContent>
+                <DishPhotoEditButton src={dishPhotoSrc} onChange={onDishPhotoFileChange} />
                 {dish.ingredients.map((recipeIngredient, index) => {
                     return <Fragment key={index}>
                         <IngredientChooser

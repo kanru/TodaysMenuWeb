@@ -70,9 +70,7 @@ export default function DayMenu(props) {
 function DishView(props) {
 
     let dishes = props.dishes;
-    dishes.map(dish => dish.photo = dish.photo || `${DEFAULT_PHOTO}`);
-
-    let editDishCallback = function(_event) {
+    let editDishCallback = function (_event) {
         let ele = _event.target;
         while (!ele.dataset.hasOwnProperty('name')) {
             ele = ele.parentNode;
@@ -82,11 +80,12 @@ function DishView(props) {
     }
 
     return <Grid item container xs={12}>
-        {dishes.map((dish, index) =>
-            <Card key={index} className={classes.card} variant="outlined">
+        {dishes.map((dish, index) => {
+            let dishPhotoSrc = dish.photo ? `http://localhost:8080/photos/${dish.photo.filename}` : DEFAULT_PHOTO;
+            return (<Card key={index} className={classes.card} variant="outlined">
                 <CardMedia
                     className={classes.media}
-                    image={dish.photo}
+                    image={dishPhotoSrc}
                     title={dish.name}
                 />
                 <CardHeader disableTypography sx={{ padding: '0px 5px' }}
@@ -98,7 +97,8 @@ function DishView(props) {
                     }
                 />
             </Card>
-        )}
+            );
+        })}
     </Grid>;
 }
 
