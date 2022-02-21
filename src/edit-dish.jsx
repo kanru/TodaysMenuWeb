@@ -13,51 +13,28 @@ import IngredientChooser from './ingredient-chooser';
 import QuantityUpdater from './quantity-updater';
 
 /**
- * @typedef {Object} Ingredient
- * @property {string} name
- * @property {string} category
- */
-
-/**
- * @typedef {Object} RecipeIngredient
- * @property {Ingredient} ingredient
- * @property {number} quantity
- */
-
-/**
- * @typedef {Object} EditedDish
- * @property {Array<RecipeIngredient>} ingredients
- */
-
-/**
  * The data and state flow of this component is from top-down.
  * The initial value is provided by the parent component via the
  * `defaultValue` property. Any change in this component will be
  * propagated back by the onChange event.
  */
 export default function EditDishForm(props) {
-    const dish = props.defaultValue;
-    /** @type {EditedDish} */
-    let editedDish = { ...dish, ingredients: [] };
-    if (dish.ingredients) {
-        editedDish.ingredients = dish.ingredients.reduce(
-            (list, item) => list.concat({ ...item, ingredient: { ...item.ingredient } }),
-            []
-        );
+    if (!props.defaultValue) {
+        return null;
     }
-
+    const dish = props.defaultValue;
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     const [shouldValidate, setShouldValidate] = useState(false);
 
     const onClose = () => {
-        const ingredients = editedDish.ingredients.filter(item => item.ingredient.name);
+        const ingredients = dish.ingredients.filter(item => item.ingredient.name);
         if (ingredients.find(item => !item.quantity)) {
             setShouldValidate(true);
             return;
         }
         props.onClose({
-            ...editedDish,
+            ...dish,
             ingredients
         });
     }
@@ -66,16 +43,22 @@ export default function EditDishForm(props) {
         props.onCancel();
     }
     const ingredientUpdateCallback = (index, value) => {
-        const updatedIngredients = [...editedDish.ingredients];
-        updatedIngredients[index].ingredient = value;
+        const updatedIngredients = [...dish.ingredients];
+        updatedIngredients[index] = {
+            ...dish.ingredients[index],
+            ingredient: value
+        };
         props.onChange({
-            ...editedDish,
+            ...dish,
             ingredients: updatedIngredients
         });
     }
     const quantityUpdateCallback = (index, value) => {
-        const updatedIngredients = [...editedDish.ingredients];
-        updatedIngredients[index].quantity = value;
+        const updatedIngredients = [...dish.ingredients];
+        updatedIngredients[index] = {
+            ...dish.ingredients[index],
+            quantity: value
+        };
         props.onChange({
             ...editedDish,
             ingredients: updatedIngredients
@@ -84,9 +67,9 @@ export default function EditDishForm(props) {
     }
     const insertNewIngredient = () => {
         props.onChange({
-            ...editedDish,
+            ...dish,
             ingredients: [
-                ...editedDish.ingredients,
+                ...dish.ingredients,
                 {
                     ingredient: {
                         name: "",
@@ -105,7 +88,7 @@ export default function EditDishForm(props) {
             aria-labelledby="form-dialog">
             <DialogTitle id="form-dialog-title">編輯[{dish.name}]</DialogTitle>
             <DialogContent>
-                {editedDish.ingredients.map((recipeIngredient, index) => {
+                {dish.ingredients.map((recipeIngredient, index) => {
                     return <Fragment key={index}>
                         <IngredientChooser
                             index={index}

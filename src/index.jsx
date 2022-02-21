@@ -49,7 +49,7 @@ function App(props) {
         formMeal: "",
         formDishNames: [],
         showEditDish: false,
-        editingDish: {},
+        editingDish: undefined,
         menu: undefined,
     });
 
