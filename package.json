@@ -10,13 +10,15 @@
     },
     "dependencies": {
         "@apollo/client": "^3.5.6",
+        "@emotion/react": "^11.8.1",
+        "@emotion/styled": "^11.8.1",
         "@mui/icons-material": "^5.2.1",
         "@mui/material": "^5.2.3",
         "moment": "^2.28.0",
         "pako": "^1.0.11",
         "preact": "^10.4.8",
         "preact-render-to-string": "^5.1.10",
-        "preact-router": "^3.2.1"
+        "preact-router": "^4.0.0"
     },
     "eslintConfig": {
         "extends": "preact"
@@ -27,7 +29,7 @@
     "devDependencies": {
         "@preact/preset-vite": "^2.1.5",
         "@rollup/plugin-graphql": "^1.1.0",
-        "eslint": "^7.9.0",
+        "eslint": "^8.9.0",
         "eslint-config-preact": "^1.1.1",
         "vite": "^2.7.1"
     }
