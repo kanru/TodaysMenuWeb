@@ -19,7 +19,7 @@ export default function IngredientChooser(props) {
         ]
     });
     const value = props.options.find(element => element.name === props.ingredientName) || "";
-    const categories = props.options.reduce((retList, ingredient) => retList.concat(ingredient.category), []);
+    const categories = Array.from(props.options.reduce((set, ingredient) => set.add(ingredient.category), new Set()));
     const [openDialog, setOpenDialog] = useState(false);
     const [dialogValue, setDialogValue] = useState({
         name: '',
