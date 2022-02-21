@@ -44,6 +44,13 @@ query GetShareableMenu($key: String!) {
     }
 }
 
+mutation UpdateDishes($dishes: [DishInput]) {
+    updateDishes(dishes: $dishes) {
+        success
+        message
+    }
+}
+
 mutation ShareMenu($menu: ShareableMenuInput) {
     shareMenu(menu: $menu) {
         success

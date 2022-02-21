@@ -48,9 +48,6 @@ export default function IngredientChooser(props) {
                 value={value}
                 sx={{ display: 'inline-block', width: '60%' }}
                 onChange={(_event, newValue) => {
-                    if (!newValue) {
-                        return;
-                    }
                     if (typeof newValue === 'string') {
                         let matched = props.options.find(element => element.name === newValue);
                         if (matched) {

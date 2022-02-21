@@ -53,7 +53,7 @@ export default function EditDishForm(props) {
         props.onClose({
             ...editedDish,
             ingredients: [
-                ...editedDish.ingredients.filter(item => item.ingredient.name != "")
+                ...editedDish.ingredients.filter(item => item.ingredient.name)
             ]
         });
     }
@@ -67,7 +67,7 @@ export default function EditDishForm(props) {
     }
     const quantityUpdateCallback = (index, value) => {
         const updatedIngredients = [...editedDish.ingredients];
-        updatedIngredients[index].quantity = value;
+        updatedIngredients[index].quantity = value || "適量";
         props.onChange({
             ...editedDish,
             ingredients: updatedIngredients
@@ -83,7 +83,7 @@ export default function EditDishForm(props) {
                         name: "",
                         category: ""
                     },
-                    quantity: ""
+                    quantity: "適量"
                 }
             ]
         });

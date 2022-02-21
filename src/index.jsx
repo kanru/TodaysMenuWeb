@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
-import { ApolloClient, ApolloProvider, InMemoryCache, useQuery } from "@apollo/client";
+import { ApolloClient, ApolloProvider, InMemoryCache, useQuery, useMutation } from "@apollo/client";
 import { CssBaseline, Grid } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
 import { createTheme, styled, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
@@ -15,7 +15,7 @@ import FormDialog from './manual-input.jsx';
 import EditDishForm from './edit-dish.jsx';
 import MenuUtil from './menu-util.js';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
-import { GetDishes, GetShareableMenu, ShareMenu } from './query.graphql';
+import { GetDishes, GetShareableMenu, ShareMenu, UpdateDishes } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
 import { useState } from "preact/hooks";
 import GroceryList from "./grocery-list.jsx";
@@ -52,6 +52,11 @@ function App(props) {
         editingDish: {},
         menu: undefined,
     });
+    let [updateDishes] = useMutation(UpdateDishes, {
+        refetchQueries: [
+            GetDishes
+        ]
+    });
 
     // TODO handle props.link for shareable menu
 
@@ -68,7 +73,7 @@ function App(props) {
     }
 
     const pickNextDish = (index, meal) => {
-        const menu = [ ...state.menu ];
+        const menu = [...state.menu];
         if (meal == "lunch") {
             menu[index].lunch = MenuUtil.cleanMealForView(lunchPlanner.pickNext(index));
         } else {
@@ -122,14 +127,21 @@ function App(props) {
     }
 
     const onEditDishConfirm = (dish) => {
-        // TODO: update backend dish and ingredient
-        allDishes.update(dish);
-        // dish.ingredients.forEach((element) => {
-        //     if (!allIngredients.find((item) => item.name === element.ingredient.name)) {
-        //         allIngredients = allIngredients.concat([element.ingredient]);
-        //     }
-        // });
-        // TODO: will need to update planner's dish pool too when we can update other dish details
+        updateDishes({
+            variables: {
+                "dishes": [
+                    {
+                        name: dish.name,
+                        ingredients: dish.ingredients.map(item => (
+                            {
+                                name: item.ingredient.name,
+                                quantity: item.quantity
+                            }
+                        ))
+                    }
+                ]
+            }
+        });
         setState((currentState) => ({ ...currentState, showEditDish: false }));
     }
 
