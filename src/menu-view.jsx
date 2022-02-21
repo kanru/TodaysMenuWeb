@@ -83,7 +83,7 @@ function DishView(props) {
 
     return <Grid item container xs={12}>
         {dishes.map((dish, index) =>
-            <Card key={index.toString()} className={classes.card} variant="outlined">
+            <Card key={index} className={classes.card} variant="outlined">
                 <CardMedia
                     className={classes.media}
                     image={dish.photo}

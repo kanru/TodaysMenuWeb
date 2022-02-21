@@ -23,7 +23,7 @@ export default function GroceryView(props) {
                     <Grid item xs={8} md={8} lg={8}>
                         <span className="quantity">
                             {items[grocery].map((quant, index) =>
-                                <Tooltip key={index.toString()} title={quant[1]}>
+                                <Tooltip key={index} title={quant[1]}>
                                     <Typography component='span'>{quant[0]}</Typography>
                                 </Tooltip>
                             )}

@@ -97,7 +97,7 @@ export default function EditDishForm(props) {
             <DialogTitle id="form-dialog-title">編輯[{dish.name}]</DialogTitle>
             <DialogContent>
                 {editedDish.ingredients.map((recipeIngredient, index) => {
-                    return <Fragment key={index.toString()}>
+                    return <Fragment key={index}>
                         <IngredientChooser
                             index={index}
                             ingredientName={recipeIngredient.ingredient.name}

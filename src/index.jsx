@@ -218,7 +218,7 @@ function App(props) {
                             <Grid container item xs={12} md={6} lg={5} spacing={2}>
                                 {state.menu.map((item, index) =>
                                     <DayMenu
-                                        key={index.toString()}
+                                        key={index}
                                         editDishCallback={showEditDishForm}
                                         nextLunchCallback={() => pickNextDish(index, "lunch")}
                                         nextDinnerCallback={() => pickNextDish(index, "dinner")}
