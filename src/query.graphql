@@ -22,6 +22,11 @@ query GetDishes {
         soup
         style
     }
+    ingredients {
+        id
+        name
+        category
+    }
 }
 
 query GetIngredients {
@@ -39,10 +44,39 @@ query GetShareableMenu($key: String!) {
     }
 }
 
+mutation AddNewDishes($dishes: [DishInput]) {
+    addNewDishes(dishes: $dishes) {
+        success
+        message
+    }
+}
+
+mutation UpdateDishes($dishes: [DishInput]) {
+    updateDishes(dishes: $dishes) {
+        success
+        message
+    }
+}
+
 mutation ShareMenu($menu: ShareableMenuInput) {
-  shareMenu(menu: $menu) {
+    shareMenu(menu: $menu) {
+        success
+        message
+        key
+    }
+}
+
+mutation AddNewIngredients($ingredients: [IngredientInput]) {
+    addNewIngredients(ingredients: $ingredients) {
+        success
+        message
+    }
+}
+
+mutation LoginUser($userId: String, $password: String) {
+  loginUser(userId: $userId, password: $password) {
     success
     message
-    key
+    token
   }
 }

@@ -1,30 +1,42 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { CssBaseline } from '@mui/material';
+import { ApolloClient, ApolloProvider, InMemoryCache, useQuery, useMutation } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
+import { createUploadLink } from "apollo-upload-client";
+import { CssBaseline, Grid } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
-import Grid from '@mui/material/Grid';
 import { createTheme, styled, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
 import moment from 'moment';
 import pako from 'pako';
-import { Component, render } from 'preact';
-import Router from 'preact-router';
+import { useState } from "react";
+import { render } from 'react-dom';
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import MyAppBar from './appbar-view.jsx';
 import DishList from './dish-pool.js';
 import FileManager from './file-manager.js';
-import GroceryManager from './grocery-manager.js';
-import GroceryView from './grocery-view.jsx';
 import FormDialog from './manual-input.jsx';
 import EditDishForm from './edit-dish.jsx';
 import MenuUtil from './menu-util.js';
-import DayMenu from './menu-view.jsx';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
-import { GetDishes, GetIngredients, GetShareableMenu, ShareMenu } from './query.graphql';
+import { GetDishes, GetShareableMenu, ShareMenu, AddNewDishes, UpdateDishes, LoginUser } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
+import GroceryList from "./grocery-list.jsx";
+import DayMenu from "./menu-view.jsx";
+import LoginDialog from "./login-dialog.jsx";
+
+const authLink = setContext((_, { headers }) => {
+    const token = localStorage.getItem('authToken');
+    return {
+        headers: {
+            ...headers,
+            authorization: token ? `Bearer ${token}` : "",
+        }
+    }
+});
 
 const client = new ApolloClient({
     // FIXME: the uri needs to be configurable
-    uri: 'http://localhost:8080/graphql',
+    link: authLink.concat(createUploadLink({ uri: 'http://localhost:8080/graphql' })),
     cache: new InMemoryCache()
 });
 
@@ -41,235 +53,263 @@ const theme = createTheme({
     }
 });
 
-class App extends Component {
+function App(props) {
 
-    state = {
+    const [state, setState] = useState({
         share: false,
         showForm: false,
         formIndex: 0,
         formMeal: "",
         formDishNames: [],
         showEditDish: false,
-        editingDish: {},
-    }
+        showLoginForm: false,
+        editingDish: undefined,
+        menu: undefined,
+    });
+    const [isLogin, setIsLogin] = useState(typeof localStorage.getItem('authToken') == 'string');
 
-    constructor({ link }) {
-        super();
-        this.allDishes = { dishes: [] };
-        this.allIngredients = [];
-        if (typeof window !== "undefined") {
-            Promise.all(
-                [
-                    client.query({ query: GetDishes })
-                        .then(result => this.initDishes(result.data.dishes)),
-                    client.query( { query: GetIngredients })
-                        .then(result => this.initGrocery(result.data.ingredients))
-                ])
-                .then(() => {
-                    if (link) {
-                        client.query({ query: GetShareableMenu, variables: { key: link } })
-                        .then(result => { 
-                            this.decodeMenu(result.data.shareableMenu.payload);
-                        });                        
-                    } else {
-                        this.generateMenu();
-                    }
-                });
-        }
-        this.loadMenu = this.loadMenu.bind(this);
-        this.saveMenu = this.saveMenu.bind(this);
-        this.shareMenu = this.shareMenu.bind(this);
-        this.closeShare = this.closeShare.bind(this);
-        this.onManualInputCancel = this.onManualInputCancel.bind(this);
-        this.onManualInputConfirm = this.onManualInputConfirm.bind(this);
-        this.onManualInputUpdate = this.onManualInputUpdate.bind(this);
-        this.onEditDishCancel = this.onEditDishCancel.bind(this);
-        this.onEditDishConfirm = this.onEditDishConfirm.bind(this);
-    }
+    let [updateDishes] = useMutation(UpdateDishes, {
+        refetchQueries: [
+            GetDishes
+        ]
+    });
+    let [addNewDishes] = useMutation(AddNewDishes, {
+        refetchQueries: [
+            GetDishes
+        ]
+    });
+    let [loginUser] = useMutation(LoginUser);
 
-    initDishes(data) {
-        this.allDishes = new DishList(data);
-        this.lunchPlanner = new LunchPlanner(data.filter(dish => (!dish.meal || dish.meal == "lunch")), DAYS);
-        this.dinnerPlanner = new DinnerPlanner(data.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
-    }
+    // TODO handle props.link for shareable menu
+    let params = useParams();
 
-    initGrocery(ingredients) {
-        this.allIngredients = ingredients;
-        this.groceryCategoryList = ingredients.reduce((retList, ingredient) => 
-                    retList.concat(ingredient.category), []);
-        this.groceryManager = new GroceryManager();
-    }
-
-    bindMenuActions(menu) {
-        menu.forEach((item, index) => {
-            item.nextLunchCallback = this.pickNextDish.bind(this, index, "lunch");
-            item.nextDinnerCallback = this.pickNextDish.bind(this, index, "dinner");
-            item.overrideLunchCallback = this.showInputDishesForm.bind(this, index, "lunch");
-            item.overrideDinnerCallback = this.showInputDishesForm.bind(this, index, "dinner");
-            item.showEditDishCallback = this.showEditDishForm.bind(this);
-        });
-        return menu;
-    }
-
-    decodeMenu(payload) {
+    const decodeMenu = (payload) => {
         let compressed = window.atob(window.decodeURIComponent(payload));
         let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
-        let menu = this.bindMenuActions(data);
-        this.setState({ menu }, () => this.aggregateGroceries());
+        setState((currentState) => ({ ...currentState, menu: data }));
     }
 
-    generateMenu() {
-        let lunch = this.lunchPlanner.randomInit();
-        let dinner = this.dinnerPlanner.randomInit();
-        let menu = this.bindMenuActions(MenuUtil.composeMenu(startDate, DAYS, lunch, dinner));
-        this.setState({ menu }, () => this.aggregateGroceries());
+    const generateMenu = () => {
+        let lunch = lunchPlanner.randomInit();
+        let dinner = dinnerPlanner.randomInit();
+        setState((currentState) => ({ ...currentState, menu: MenuUtil.composeMenu(startDate, DAYS, lunch, dinner) }));
     }
 
-    pickNextDish(index, meal) {
-        const { menu = [] } = this.state;
+    const pickNextDish = (index, meal) => {
+        const menu = [...state.menu];
         if (meal == "lunch") {
-            menu[index].lunch = MenuUtil.cleanMealForView(this.lunchPlanner.pickNext(index));
+            menu[index].lunch = MenuUtil.cleanMealForView(lunchPlanner.pickNext(index));
         } else {
-            menu[index].dinner = MenuUtil.cleanMealForView(this.dinnerPlanner.pickNext(index));
+            menu[index].dinner = MenuUtil.cleanMealForView(dinnerPlanner.pickNext(index));
         }
-        this.setState({ menu }, () => this.aggregateGroceries());
+        setState((currentState) => ({ ...currentState, menu }));
     }
 
-    showInputDishesForm(index, meal) {
-        const { menu = [] } = this.state;
+    const showInputDishesForm = (index, meal) => {
+        const { menu } = state;
         let formDishNames = menu[index][meal].map(dish => dish.name);
-        this.setState({ showForm: true, formIndex: index, formMeal: meal, formDishNames });
+        setState((currentState) => ({ ...currentState, showForm: true, formIndex: index, formMeal: meal, formDishNames }));
     }
 
-    onManualInputCancel() {
-        this.setState({ showForm: false });
+    const onManualInputCancel = () => {
+        setState((currentState) => ({ ...currentState, showForm: false }));
     }
 
-    onManualInputConfirm() {
-        this.manualSetDish(this.state.formIndex, this.state.formMeal, this.state.formDishNames);
-        this.setState({ showForm: false });
+    const onManualInputConfirm = () => {
+        manualSetDish(state.formIndex, state.formMeal, state.formDishNames);
+        setState((currentState) => ({ ...currentState, showForm: false }));
     }
 
-    onManualInputUpdate(_event, values) {
-        this.setState({ formDishNames: values });
+    const onManualInputUpdate = (_event, values) => {
+        setState((currentState) => ({ ...currentState, formDishNames: values }));
     }
 
-    manualSetDish(index, meal, names) {
+    const manualSetDish = (index, meal, names) => {
         if (!names) {
             return;
         }
-        const { menu = [] } = this.state;
-        let dishes = names.map(name => this.allDishes.lookupByName(name)).filter(dish => dish != null);
+        const { menu } = state;
+        let dishes = names.map(name => allDishes.lookupByName(name)).filter(dish => dish != null);
         if (dishes.length == 0) {
             return;
         }
         menu[index][meal] = MenuUtil.cleanMealForView(dishes);
-        this.setState({ menu }, () => this.aggregateGroceries());
     }
 
-    showEditDishForm(name) {
-        let editingDish = this.allDishes.lookupByName(name);
-        this.setState({ showEditDish: true, editingDish });
+    const showEditDishForm = (name) => {
+        let editingDish = allDishes.lookupByName(name);
+        setState((currentState) => ({ ...currentState, showEditDish: true, editingDish }));
     }
 
-    onEditDishCancel() {
-        this.setState({ showEditDish: false });
+    const onEditDishCancel = () => {
+        setState((currentState) => ({ ...currentState, showEditDish: false }));
     }
 
-    onEditDishConfirm(dish) {
-        // TODO: update backend dish and ingredient
-        this.allDishes.update(dish);
-        dish.ingredients.forEach((element) => {
-            if (!this.allIngredients.find((item) => item.name === element.ingredient.name)) {
-                this.allIngredients = this.allIngredients.concat([element.ingredient]);
+    const onEditDishChange = (editingDish) => {
+        setState((currentState) => ({ ...currentState, editingDish }));
+    }
+
+    const onEditDishConfirm = (dish) => {
+        let dishes = [
+            {
+                name: dish.name,
+                ingredients: dish.ingredients.map(item => (
+                    {
+                        name: item.ingredient.name,
+                        quantity: item.quantity
+                    }
+                )),
+                photo: dish.photo
             }
-        });
-        // TODO: will need to update planner's dish pool too when we can update other dish details
-        this.setState({ showEditDish: false });
-        this.aggregateGroceries();
+        ];
+        if (dish.isDraft) {
+            addNewDishes({ variables: { dishes } })
+        } else {
+            updateDishes({ variables: { dishes } });
+        }
+        setState((currentState) => ({ ...currentState, showEditDish: false }));
     }
 
-    aggregateGroceries() {
-        const { menu = [] } = this.state;
-        let dishes = MenuUtil.extractDishes(menu)
-            .reduce((list, dish) => list.concat([this.allDishes.lookupByName(dish.name)]), []);
-        const groceries = this.groceryManager.aggregate(dishes);
-        this.setState({ groceries });
+    const onClickLogin = () => {
+        setState((currentState) => ({ ...currentState, showLoginForm: true }));
     }
 
-    saveMenu() {
-        const { menu = [] } = this.state;
+    const onClickLogout = () => {
+        localStorage.clear();
+        setIsLogin(false);
+    }
+
+    const onLoginCancel = () => {
+        setState((currentState) => ({ ...currentState, showLoginForm: false }));
+    }
+
+    const onLoginConfirm = async (userId, hashedPassword) => {
+        const result = await loginUser({ variables: { userId, password: hashedPassword }});
+        if (result.data.loginUser.success) {
+            setState((currentState) => ({ ...currentState, showLoginForm: false }));
+            setIsLogin(true);
+            localStorage.setItem('authToken', result.data.loginUser.token);
+        }
+    }
+
+    const saveMenu = () => {
+        const { menu } = state;
         FileManager.saveJson(menu, 'todays_menu.json');
     }
 
-    loadMenu() {
+    const loadMenu = () => {
         FileManager.loadJson((data) => {
-            let menu = this.bindMenuActions(data);
-            this.setState({ menu }, () => this.aggregateGroceries());
+            setState((currentState) => ({ ...currentState, menu: data }));
         });
     }
 
-    shareMenu() {
-        const { menu = [] } = this.state;
+    const shareMenu = () => {
+        const { menu } = state;
         let compressed = pako.deflate(JSON.stringify(menu), { to: 'string' });
         let payload = window.encodeURIComponent(window.btoa(compressed));
-        client.mutate({mutation: ShareMenu, variables: {menu: {payload}}})
-            .then(result => {
-                this.setState({ share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` });
-            });
+        // client.mutate({ mutation: ShareMenu, variables: { menu: { payload } } })
+        //     .then(result => {
+        //         setState((currentState) => ({ ...currentState, share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` }));
+        //    });
     }
 
-    closeShare() {
-        this.setState({ share: false });
+    const closeShare = () => {
+        setState((currentState) => ({ ...currentState, share: false }));
     }
 
-    render({ }, { menu = [], groceries = {}, share, url }) {
+    let { data, loading } = useQuery(GetDishes);
 
-        return (
-            <StyledEngineProvider injectFirst>
-                <CssBaseline />
-                <ThemeProvider theme={theme}>
-                    <div>
-                        <MyAppBar onClickLoadMenu={this.loadMenu} onClickSaveMenu={this.saveMenu}
-                            onClickShareMenu={this.shareMenu} />
-                        <FormDialog open={this.state.showForm}
-                            defaultValue={this.state.formDishNames}
-                            options={this.allDishes.dishes.map(dish => dish.name)}
-                            onCancel={this.onManualInputCancel}
-                            onClose={this.onManualInputConfirm}
-                            onChange={this.onManualInputUpdate} />
-                        <EditDishForm open={this.state.showEditDish}
-                            defaultValue={this.state.editingDish}
-                            options={this.allIngredients}
-                            onCancel={this.onEditDishCancel}
-                            onClose={this.onEditDishConfirm} />
-                        <div style={{ padding: 5 }}>
-                            <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
-                                <Grid container item xs={12} md={6} lg={5} spacing={2}>
-                                    {menu.map(item => <DayMenu item={item} />)}
-                                </Grid>
-                                <Grid item xs={12} md={6} lg={5}>
-                                    {this.groceryCategoryList && this.groceryCategoryList
-                                        .filter(category => groceries[category])
-                                        .map(category =>
-                                            <GroceryView category={category} items={groceries[category]} />)}
-                                </Grid>
+    if (loading) {
+        return null;
+    }
+
+    const allDishes = new DishList(data.dishes);
+    const lunchPlanner = new LunchPlanner(data.dishes.filter(dish => (!dish.meal || dish.meal == "lunch")), DAYS);
+    const dinnerPlanner = new DinnerPlanner(data.dishes.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
+
+    if (state.menu == undefined) {
+        generateMenu();
+        return null;
+    }
+
+    // TODO make state.menu slim
+    // Currently the menu state also contains a snapshot of detail dish data
+    // so we need to patch the dish data to the latest version.
+    let patchedMenu = state.menu.map(dayMenu => (
+        {
+            ...dayMenu,
+            lunch: dayMenu.lunch.map(lunchMenu => allDishes.lookupByName(lunchMenu.name)),
+            dinner: dayMenu.dinner.map(dinnerMenu => allDishes.lookupByName(dinnerMenu.name))
+        }
+    ));
+
+    return (
+        <StyledEngineProvider injectFirst>
+            <CssBaseline />
+            <ThemeProvider theme={theme}>
+                <div>
+                    <MyAppBar
+                        isLogin={isLogin}
+                        onClickLogin={onClickLogin}
+                        onClickLogout={onClickLogout}
+                        onClickLoadMenu={loadMenu}
+                        onClickSaveMenu={saveMenu}
+                        onClickShareMenu={shareMenu}
+                    />
+                    <FormDialog
+                        open={state.showForm}
+                        defaultValue={state.formDishNames}
+                        options={allDishes.dishes.map(dish => dish.name)}
+                        onCancel={onManualInputCancel}
+                        onClose={onManualInputConfirm}
+                        onChange={onManualInputUpdate}
+                    />
+                    <EditDishForm
+                        open={state.showEditDish}
+                        defaultValue={state.editingDish}
+                        options={data.ingredients}
+                        onCancel={onEditDishCancel}
+                        onClose={onEditDishConfirm}
+                        onChange={onEditDishChange}
+                    />
+                    <LoginDialog
+                        open={state.showLoginForm}
+                        onCancel={onLoginCancel}
+                        onConfirm={onLoginConfirm}
+                    />
+                    <div style={{ padding: 5 }}>
+                        <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
+                            <Grid container item xs={12} md={6} lg={5} spacing={2}>
+                                {patchedMenu.map((item, index) =>
+                                    <DayMenu
+                                        key={index}
+                                        editDishCallback={showEditDishForm}
+                                        nextLunchCallback={() => pickNextDish(index, "lunch")}
+                                        nextDinnerCallback={() => pickNextDish(index, "dinner")}
+                                        overrideLunchCallback={() => showInputDishesForm(index, "lunch")}
+                                        overrideDinnerCallback={() => showInputDishesForm(index, "dinner")}
+                                        isLogin={isLogin}
+                                        item={item}
+                                    />)}
                             </Grid>
-                        </div>
-                        <ShareDialog open={share} url={url} onClose={this.closeShare} />
+                            <GroceryList menu={patchedMenu} allDishes={allDishes} />
+                        </Grid>
                     </div>
-                </ThemeProvider>
-            </StyledEngineProvider>
-        );
-    }
+                    <ShareDialog open={state.share} url={state.url} onClose={closeShare} />
+                </div>
+            </ThemeProvider>
+        </StyledEngineProvider>
+    );
 }
 
 const Main = () => (
     <ApolloProvider client={client}>
-        <Router>
-            <App path="/" />
-            <App path="/m/:link" />
-        </Router>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/m/:link" element={<App />} />
+            </Routes>
+        </BrowserRouter>
     </ApolloProvider>
 );
 
@@ -285,4 +325,4 @@ const StyledMain = styled(Main)(() => ({
     }
 }));
 
-render(<StyledMain />, document.body);
+render(<StyledMain />, document.getElementById('root'));
