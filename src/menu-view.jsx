@@ -52,13 +52,13 @@ export default function DayMenu(props) {
                 <Typography variant="h2" sx={{ fontSize: '1.25rem', fontWeight: '500', padding: '10px 0' }}>{item.date}</Typography>
             </Grid>
             <Grid item container xs={4} spacing={1}>
-                <DishView dishes={item.lunch} editDishCallback={props.editDishCallback} />
+                <DishView dishes={item.lunch} isLogin={props.isLogin} editDishCallback={props.editDishCallback} />
                 <Grid item xs={12}>
                     <MealActions nextCallback={props.nextLunchCallback} overrideCallback={props.overrideLunchCallback} />
                 </Grid>
             </Grid>
             <Grid item container xs={8} spacing={1}>
-                <DishView dishes={item.dinner} editDishCallback={props.editDishCallback} />
+                <DishView dishes={item.dinner} isLogin={props.isLogin} editDishCallback={props.editDishCallback} />
                 <Grid item>
                     <MealActions nextCallback={props.nextDinnerCallback} overrideCallback={props.overrideDinnerCallback} />
                 </Grid>
@@ -91,9 +91,10 @@ function DishView(props) {
                 <CardHeader disableTypography sx={{ padding: '0px 5px' }}
                     title={dish.name}
                     action={
-                        <IconButton aria-label="settings" onClick={editDishCallback} data-name={dish.name}>
+                        props.isLogin ? <IconButton aria-label="settings" onClick={editDishCallback} data-name={dish.name}>
                             <DriveFileRenameOutlineRoundedIcon />
                         </IconButton>
+                        : null
                     }
                 />
             </Card>

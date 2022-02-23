@@ -18,6 +18,7 @@ export default function MyAppBar(props) {
                     Today's Menu
                 </Typography>
                 <ButtonGroup variant="contained" color="appbar" aria-label="outlined primary button group">
+                    { props.isLogin ? <Button onClick={props.onClickLogout}>登出</Button> : <Button onClick={props.onClickLogin}>登入</Button> }
                     <Button onClick={props.onClickLoadMenu}>讀檔</Button>
                     <Button onClick={props.onClickSaveMenu}>存檔</Button>
                     <Button onClick={props.onClickShareMenu}>分享</Button>

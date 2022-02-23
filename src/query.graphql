@@ -72,3 +72,11 @@ mutation AddNewIngredients($ingredients: [IngredientInput]) {
         message
     }
 }
+
+mutation LoginUser($userId: String, $password: String) {
+  loginUser(userId: $userId, password: $password) {
+    success
+    message
+    token
+  }
+}

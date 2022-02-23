@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable no-prototype-builtins */
 import { ApolloClient, ApolloProvider, InMemoryCache, useQuery, useMutation } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
 import { createUploadLink } from "apollo-upload-client";
 import { CssBaseline, Grid } from '@mui/material';
 import { blue, grey } from '@mui/material/colors';
@@ -17,14 +18,25 @@ import FormDialog from './manual-input.jsx';
 import EditDishForm from './edit-dish.jsx';
 import MenuUtil from './menu-util.js';
 import { DinnerPlanner, LunchPlanner } from './planner.js';
-import { GetDishes, GetShareableMenu, ShareMenu, AddNewDishes, UpdateDishes } from './query.graphql';
+import { GetDishes, GetShareableMenu, ShareMenu, AddNewDishes, UpdateDishes, LoginUser } from './query.graphql';
 import ShareDialog from './share-dialog.jsx';
 import GroceryList from "./grocery-list.jsx";
 import DayMenu from "./menu-view.jsx";
+import LoginDialog from "./login-dialog.jsx";
+
+const authLink = setContext((_, { headers }) => {
+    const token = localStorage.getItem('authToken');
+    return {
+        headers: {
+            ...headers,
+            authorization: token ? `Bearer ${token}` : "",
+        }
+    }
+});
 
 const client = new ApolloClient({
     // FIXME: the uri needs to be configurable
-    link: createUploadLink({ uri: 'http://localhost:8080/graphql' }),
+    link: authLink.concat(createUploadLink({ uri: 'http://localhost:8080/graphql' })),
     cache: new InMemoryCache()
 });
 
@@ -50,9 +62,11 @@ function App(props) {
         formMeal: "",
         formDishNames: [],
         showEditDish: false,
+        showLoginForm: false,
         editingDish: undefined,
         menu: undefined,
     });
+    const [isLogin, setIsLogin] = useState(typeof localStorage.getItem('authToken') == 'string');
 
     let [updateDishes] = useMutation(UpdateDishes, {
         refetchQueries: [
@@ -64,6 +78,7 @@ function App(props) {
             GetDishes
         ]
     });
+    let [loginUser] = useMutation(LoginUser);
 
     // TODO handle props.link for shareable menu
     let params = useParams();
@@ -155,6 +170,28 @@ function App(props) {
         setState((currentState) => ({ ...currentState, showEditDish: false }));
     }
 
+    const onClickLogin = () => {
+        setState((currentState) => ({ ...currentState, showLoginForm: true }));
+    }
+
+    const onClickLogout = () => {
+        localStorage.clear();
+        setIsLogin(false);
+    }
+
+    const onLoginCancel = () => {
+        setState((currentState) => ({ ...currentState, showLoginForm: false }));
+    }
+
+    const onLoginConfirm = async (userId, hashedPassword) => {
+        const result = await loginUser({ variables: { userId, password: hashedPassword }});
+        if (result.data.loginUser.success) {
+            setState((currentState) => ({ ...currentState, showLoginForm: false }));
+            setIsLogin(true);
+            localStorage.setItem('authToken', result.data.loginUser.token);
+        }
+    }
+
     const saveMenu = () => {
         const { menu } = state;
         FileManager.saveJson(menu, 'todays_menu.json');
@@ -212,6 +249,9 @@ function App(props) {
             <ThemeProvider theme={theme}>
                 <div>
                     <MyAppBar
+                        isLogin={isLogin}
+                        onClickLogin={onClickLogin}
+                        onClickLogout={onClickLogout}
                         onClickLoadMenu={loadMenu}
                         onClickSaveMenu={saveMenu}
                         onClickShareMenu={shareMenu}
@@ -232,6 +272,11 @@ function App(props) {
                         onClose={onEditDishConfirm}
                         onChange={onEditDishChange}
                     />
+                    <LoginDialog
+                        open={state.showLoginForm}
+                        onCancel={onLoginCancel}
+                        onConfirm={onLoginConfirm}
+                    />
                     <div style={{ padding: 5 }}>
                         <Grid container spacing={3} alignItems="flex-start" justifyContent="center">
                             <Grid container item xs={12} md={6} lg={5} spacing={2}>
@@ -243,6 +288,7 @@ function App(props) {
                                         nextDinnerCallback={() => pickNextDish(index, "dinner")}
                                         overrideLunchCallback={() => showInputDishesForm(index, "lunch")}
                                         overrideDinnerCallback={() => showInputDishesForm(index, "dinner")}
+                                        isLogin={isLogin}
                                         item={item}
                                     />)}
                             </Grid>
