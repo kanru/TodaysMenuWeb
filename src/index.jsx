@@ -36,7 +36,7 @@ const authLink = setContext((_, { headers }) => {
 
 const client = new ApolloClient({
     // FIXME: the uri needs to be configurable
-    link: authLink.concat(createUploadLink({ uri: 'http://localhost:8080/graphql' })),
+    link: authLink.concat(createUploadLink({ uri: import.meta.env.VITE_GRAPHQL_URL })),
     cache: new InMemoryCache()
 });
 

@@ -128,7 +128,7 @@ export default function EditDishForm(props) {
         setDishPhotoFile(file);
     }
     const DEFAULT_PHOTO = '/assets/dish_default.jpg';
-    let dishPhotoSrc = dish.photo ? `http://localhost:8080/photos/${dish.photo.filename}` : DEFAULT_PHOTO;
+    let dishPhotoSrc = dish.photo ? `${import.meta.env.VITE_PHOTOS_URL}/${dish.photo.filename}` : DEFAULT_PHOTO;
     if (dishPhotoFile) {
         dishPhotoSrc = URL.createObjectURL(dishPhotoFile);
     }

@@ -81,7 +81,7 @@ function DishView(props) {
 
     return <Grid item container xs={12}>
         {dishes.map((dish, index) => {
-            let dishPhotoSrc = dish.photo ? `http://localhost:8080/photos/${dish.photo.filename}` : DEFAULT_PHOTO;
+            let dishPhotoSrc = dish.photo ? `${import.meta.env.VITE_PHOTOS_URL}/${dish.photo.filename}` : DEFAULT_PHOTO;
             return (<Card key={index} className={classes.card} variant="outlined">
                 <CardMedia
                     className={classes.media}
