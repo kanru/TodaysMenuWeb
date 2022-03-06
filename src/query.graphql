@@ -1,6 +1,5 @@
 query GetDishes {
     dishes {
-        id
         name
         ingredients {
             ingredient {
@@ -23,7 +22,6 @@ query GetDishes {
         style
     }
     ingredients {
-        id
         name
         category
     }
@@ -31,7 +29,6 @@ query GetDishes {
 
 query GetIngredients {
     ingredients {
-        id
         name
         category
     }

@@ -79,11 +79,13 @@ function App(props) {
         ]
     });
     let [loginUser] = useMutation(LoginUser);
+    let [shareMenu] = useMutation(ShareMenu);
 
     // TODO handle props.link for shareable menu
     let params = useParams();
 
     const decodeMenu = (payload) => {
+        // console.log(payload);
         let compressed = window.atob(window.decodeURIComponent(payload));
         let data = JSON.parse(pako.inflate(compressed, { to: 'string' }));
         setState((currentState) => ({ ...currentState, menu: data }));
@@ -184,7 +186,7 @@ function App(props) {
     }
 
     const onLoginConfirm = async (userId, hashedPassword) => {
-        const result = await loginUser({ variables: { userId, password: hashedPassword }});
+        const result = await loginUser({ variables: { userId, password: hashedPassword } });
         if (result.data.loginUser.success) {
             setState((currentState) => ({ ...currentState, showLoginForm: false }));
             setIsLogin(true);
@@ -203,14 +205,14 @@ function App(props) {
         });
     }
 
-    const shareMenu = () => {
+    const encodeAndShareMenu = async () => {
         const { menu } = state;
         let compressed = pako.deflate(JSON.stringify(menu), { to: 'string' });
         let payload = window.encodeURIComponent(window.btoa(compressed));
-        // client.mutate({ mutation: ShareMenu, variables: { menu: { payload } } })
-        //     .then(result => {
-        //         setState((currentState) => ({ ...currentState, share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` }));
-        //    });
+        let result = await shareMenu({ variables: { menu: { payload } } });
+        if (result.data.shareMenu.success) {
+            setState((currentState) => ({ ...currentState, share: true, url: `${location.origin}/m/${result.data.shareMenu.key}` }));
+        }
     }
 
     const closeShare = () => {
@@ -226,6 +228,12 @@ function App(props) {
     const allDishes = new DishList(data.dishes);
     const lunchPlanner = new LunchPlanner(data.dishes.filter(dish => (!dish.meal || dish.meal == "lunch")), DAYS);
     const dinnerPlanner = new DinnerPlanner(data.dishes.filter(dish => (!dish.meal || dish.meal == "dinner")), DAYS);
+
+    if (state.menu == undefined && params.link) {
+        client.query({ query: GetShareableMenu, variables: { key: params.link } })
+            .then((result) => decodeMenu(result.data.shareableMenu.payload));
+        return null;
+    }
 
     if (state.menu == undefined) {
         generateMenu();
@@ -254,7 +262,7 @@ function App(props) {
                         onClickLogout={onClickLogout}
                         onClickLoadMenu={loadMenu}
                         onClickSaveMenu={saveMenu}
-                        onClickShareMenu={shareMenu}
+                        onClickShareMenu={encodeAndShareMenu}
                     />
                     <FormDialog
                         open={state.showForm}

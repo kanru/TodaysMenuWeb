@@ -1,11 +1,7 @@
 import { Backdrop, Button, CircularProgress, Container, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
 import { useState } from "react";
-import * as scryptPbkdf from 'scrypt-pbkdf';
-import * as base64 from 'base64-arraybuffer';
 
 export default function LoginDialog(props) {
-    const derivedKeyLength = 32;
-    const clientParams = { N: 8192, r: 8, p: 1 };
     const [userId, setUserId] = useState("");
     const [userPassword, setUserPassword] = useState("");
     const [inProgress, setInProgress] = useState(false);
@@ -23,8 +19,8 @@ export default function LoginDialog(props) {
         event.preventDefault();
         setInProgress(true);
         const user = userId;
-        const hashedPassword = base64.encode(await scryptPbkdf.scrypt(userPassword, '', derivedKeyLength, clientParams));
-        props.onConfirm(user, hashedPassword);
+        const preHashedPassword = (await argon2.hash({ pass: userPassword, salt: 'v202203061515' })).hashHex;
+        props.onConfirm(user, preHashedPassword);
         setUserId("");
         setUserPassword("");
         setInProgress(false);
