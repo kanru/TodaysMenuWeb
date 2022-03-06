@@ -19,8 +19,7 @@ export default function LoginDialog(props) {
         event.preventDefault();
         setInProgress(true);
         const user = userId;
-        const preHashedPassword = (await argon2.hash({ pass: userPassword, salt: 'v202203061515' })).hashHex;
-        props.onConfirm(user, preHashedPassword);
+        props.onConfirm(user, userPassword);
         setUserId("");
         setUserPassword("");
         setInProgress(false);
