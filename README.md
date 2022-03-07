@@ -1,15 +1,17 @@
 # TodaysMenuWeb
+
 Todays Menu web frontend
 
 ## Build
 
 ```sh
-npm run build
+yarn
+yarn build
 ```
 
 ### Local testing
 
 ```sh
-npm run dev
+yarn
+yarn dev
 ```
-
