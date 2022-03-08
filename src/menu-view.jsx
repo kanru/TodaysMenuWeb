@@ -12,12 +12,14 @@ import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+import { textAlign } from '@mui/system';
 
 const PREFIX = 'menu-view';
 
 const classes = {
     card: `${PREFIX}-card`,
-    media: `${PREFIX}-media`
+    media: `${PREFIX}-media`,
+    mealAction: `${PREFIX}-meal-action`
 };
 
 const StyledGrid = styled(Grid)((
@@ -27,19 +29,32 @@ const StyledGrid = styled(Grid)((
 ) => ({
     [`& .${classes.card}`]: {
         maxWidth: 150,
-        [theme.breakpoints.up('md')]: {
-            maxWidth: 150,
+        [theme.breakpoints.down('md')]: {
+            width: 110,
         },
         minWidth: 50,
         width: 150,
+        marginLeft: 5,
     },
 
     [`& .${classes.media}`]: {
-        height: 150,
-        [theme.breakpoints.up('md')]: {
-            height: 150,
+        height: 110,
+        [theme.breakpoints.down('md')]: {
+            height: 80,
         },
     },
+
+    [`& .${classes.mealAction} .MuiChip-label`]: {
+        [theme.breakpoints.down('md')]: {
+            display: 'none',
+        },
+    },
+
+    [`& .${classes.mealAction} .MuiChip-icon`]: {
+        [theme.breakpoints.down('md')]: {
+            margin: '10px',
+        },
+    }
 }));
 
 const DEFAULT_PHOTO = '/assets/dish_default.jpg';
@@ -94,7 +109,7 @@ function DishView(props) {
                         props.isLogin ? <IconButton aria-label="settings" onClick={editDishCallback} data-name={dish.name}>
                             <DriveFileRenameOutlineRoundedIcon />
                         </IconButton>
-                        : null
+                            : null
                     }
                 />
             </Card>
@@ -104,7 +119,7 @@ function DishView(props) {
 }
 
 function MealActions(props) {
-    return <Stack direction="row" spacing={0.5}>
+    return <Stack direction="row" spacing={0.5} className={classes.mealAction}>
         <Chip variant="outlined" size="small" icon={<ShuffleRoundedIcon />} label="隨機選" onClick={props.nextCallback} />
         <Chip variant="outlined" size="small" icon={<SearchRoundedIcon />} label="自己挑" onClick={props.overrideCallback} />
     </Stack>;
