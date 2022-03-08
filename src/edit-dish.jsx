@@ -13,7 +13,7 @@ import { Fragment, useState } from 'react';
 import IngredientChooser from './ingredient-chooser';
 import QuantityUpdater from './quantity-updater';
 import { nanoid } from 'nanoid';
-import Resizer from "react-image-file-resizer";
+import Resizer from "@kanru/react-image-file-resizer";
 
 const Input = styled('input')({
     display: 'none',

@@ -445,6 +445,11 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@kanru/react-image-file-resizer@^0.4.7":
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/@kanru/react-image-file-resizer/-/react-image-file-resizer-0.4.7.tgz#9e52be0068e5202c6fefb0313bd97e85ef82eb75"
+  integrity sha512-RyMlHUwbeGTGKGaLimPQSAC5DXhhv+LQS5sBWluGPJtyCfZumljLvXZicQqa5M8Ny+UVlYq7/z3GjCpm2FfXVg==
+
 "@mdn/browser-compat-data@^3.3.14":
   version "3.3.14"
   resolved "https://registry.yarnpkg.com/@mdn/browser-compat-data/-/browser-compat-data-3.3.14.tgz#b72a37c654e598f9ae6f8335faaee182bebc6b28"
@@ -2096,11 +2101,6 @@ react-dom@^17.0.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     scheduler "^0.20.2"
-
-react-image-file-resizer@^0.4.7:
-  version "0.4.7"
-  resolved "https://registry.yarnpkg.com/react-image-file-resizer/-/react-image-file-resizer-0.4.7.tgz#74b33a03832c0771c6c03b037bae9ba6baf10703"
-  integrity sha512-Dak7Ecrd6WEV5LjqoRYFI49ASn7eB1VTlrw6dri9HeIMS6aJang4nli6q5xeckEMY+7QwgqgWqAQD5tgkm4bJg==
 
 react-is@^16.13.1, react-is@^16.7.0:
   version "16.13.1"
