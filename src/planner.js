@@ -20,14 +20,20 @@ class Planner {
         return dish.soup === undefined ? false : dish.soup;
     }
 
+    ingredientsContainMeat(dish) {
+        return dish.ingredients.find(item => ["肉", "海鮮"].includes(item.ingredient.category)) != undefined;
+    }
+
+    ingredientsContainVegetable(dish) {
+        return dish.ingredients.find(item => ["蔬菜"].includes(item.ingredient.category)) != undefined;
+    }
+
     isMeat(dish) {
-        // TODO: check ingredient for meat
-        return !this.isOneDish(dish) && !this.isSoup(dish);
+        return !this.isOneDish(dish) && !this.isSoup(dish) && this.ingredientsContainMeat(dish);
     }
 
     isVegetable(dish) {
-        // TODO: check ingredients for vegetable
-        return !this.isOneDish(dish) && !this.isSoup(dish);
+        return !this.isOneDish(dish) && !this.isSoup(dish) && !this.ingredientsContainMeat(dish) && this.ingredientsContainVegetable(dish);
     }
 
     cookTime(dish) {
@@ -51,7 +57,7 @@ export class LunchPlanner extends Planner {
         for (let i = 0; i < this.days; ++i) {
             this.selected.push([this.pool.next()]);
         }
-        
+
         this.selected.sort((a, b) => this.cookTime(a[0]) - this.cookTime(b[0]));
 
         return this.selected;
